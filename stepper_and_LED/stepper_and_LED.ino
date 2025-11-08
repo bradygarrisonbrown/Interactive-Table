@@ -1,4 +1,5 @@
 #include <AccelStepper.h>
+#include <MultiStepper.h>
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
   #include <avr/power.h>
@@ -6,23 +7,34 @@
 
 // Stepper setup
 #define HALFSTEP 8
-#define motorPin1  8
-#define motorPin2  9
-#define motorPin3  10
-#define motorPin4  11
 
-AccelStepper stepper1(HALFSTEP, motorPin1, motorPin3, motorPin2, motorPin4);
+
+#define motorAPin1  8
+#define motorAPin2  9
+#define motorAPin3  10
+#define motorAPin4  11
+
+#define motorBPin1  2
+#define motorBPin2  3
+#define motorBPin3  4
+#define motorBPin4  5
+
+
+AccelStepper stepperA(HALFSTEP, motorAPin1, motorAPin3, motorAPin2, motorAPin4);
+AccelStepper stepperB(HALFSTEP, motorBPin1, motorBPin3, motorBPin2, motorBPin4);
+
+MultiStepper multi;
 
 // NeoPixel setup
 #define LED_PIN     6
 #define LED_COUNT   256
-#define BRIGHTNESS  50
+#define BRIGHTNESS  5
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 // Motion settings
-const float maxSpeed      = 2000.0;
-const float acceleration  = 1000.0;
+const float maxSpeed      = 1000.0;
+const float acceleration  = 500.0;
 
 long targetPosition = 0;
 
@@ -31,8 +43,14 @@ void setup() {
   Serial.println("AccelStepper Serial Control Ready.");
   Serial.println("Type a target position (e.g. 1000 or -5000).");
 
-  stepper1.setMaxSpeed(maxSpeed);
-  stepper1.setAcceleration(acceleration);
+  stepperA.setMaxSpeed(maxSpeed);
+  stepperA.setAcceleration(acceleration);
+  stepperB.setMaxSpeed(maxSpeed);
+  stepperB.setAcceleration(acceleration);
+
+  multi.addStepper(stepperA);
+  multi.addStepper(stepperB);
+  
 
   // Neopixel init
   #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
@@ -56,7 +74,13 @@ void loop() {
       Serial.print("New move command: ");
       Serial.println(targetPosition);
 
-      stepper1.moveTo(targetPosition);
+      long positions[2];
+      positions[0] = targetPosition;     // Stepper A
+      positions[1] = targetPosition;    // Stepper B 
+
+      // Command both motors to move
+      multi.moveTo(positions);
+      //multi.runSpeedToPosition(); // Blocks until done
     }
 
     // --- Set color based on target position ---
@@ -79,6 +103,6 @@ void loop() {
   }
 
   // Continuously drive the stepper
-  stepper1.run();
+  multi.run();
 }
 
