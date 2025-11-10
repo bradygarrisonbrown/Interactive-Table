@@ -5,6 +5,10 @@
   #include <avr/power.h>
 #endif
 
+//IO Expander
+#include <Adafruit_MCP23X17.h>
+
+
 // Stepper setup
 #define HALFSTEP 8
 
@@ -33,19 +37,44 @@ long targetPosition = 0;
 // NeoPixel setup
 #define LED_PIN     6
 #define LED_COUNT   256
-#define BRIGHTNESS  10
+#define BRIGHTNESS  100
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 int red = 0, green = 0, blue = 0;
 
+// Adafruit_MCP23X08 mcp;
+Adafruit_MCP23X17 mcp;
+
+
+//LCD Stuff
+// Creates an LCD object. Parameters: (rs, enable, d4, d5, d6, d7)
+//LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
 //Button Stuff
-#define RED_BUTTON  7
-byte lastButtonState = LOW;
+#define BLUE_BUTTON  8
+byte blueLastButtonState = LOW;
+
+#define YELL_BUTTON  9
+byte yellLastButtonState = LOW;
+
+#define RED_BUTTON  10
+byte redLastButtonState = LOW;
+
+#define GREEN_BUTTON  11
+byte greenLastButtonState = LOW;
+
+#define WHITE_BUTTON  12
+byte whiteLastButtonState = LOW;
 
 
 void setup() {
+
   //Button Setup
-  pinMode(RED_BUTTON, INPUT);
-  //attachInterrupt(digitalPinToInterrupt(redButton), redState, RISING);
+  mcp.pinMode(BLUE_BUTTON, INPUT_PULLDOWN);
+  mcp.pinMode(YELL_BUTTON, INPUT_PULLDOWN);
+  mcp.pinMode(RED_BUTTON, INPUT_PULLDOWN);
+  mcp.pinMode(GREEN_BUTTON, INPUT_PULLDOWN);
+  mcp.pinMode(WHITE_BUTTON, INPUT_PULLDOWN);
+
 
 
   //Stepper Setup
@@ -74,18 +103,57 @@ void setup() {
 }
 
 void loop() {
-  // Check for serial input
+  //Button Checks
 
-  byte buttonState = digitalRead(RED_BUTTON);
-  if (buttonState != lastButtonState) {
-    lastButtonState = buttonState;
+  //Serial.println("LOOP!");
+
+  byte buttonState = mcp.digitalRead(BLUE_BUTTON);
+  if (buttonState != blueLastButtonState) {
+    blueLastButtonState = buttonState;
     if (buttonState == HIGH) {
       // do an action, for example print on Serial
-      buttonUpdateColor(150, 0, 0, 5000, "RED!!!");
+      buttonUpdateColor(0, 0, 150, 5000, "BLUE!!!");
+    }
+  }
+
+  buttonState = mcp.digitalRead(YELL_BUTTON);
+  if (buttonState != yellLastButtonState) {
+    yellLastButtonState = buttonState;
+    if (buttonState == HIGH) {
+      // do an action, for example print on Serial
+      buttonUpdateColor(150, 150, 0, 10000, "YELLOW!!!");
+    }
+  }
+
+  buttonState = mcp.digitalRead(RED_BUTTON);
+  if (buttonState != redLastButtonState) {
+    redLastButtonState = buttonState;
+    if (buttonState == HIGH) {
+      // do an action, for example print on Serial
+      buttonUpdateColor(150, 0, 0, 15000, "RED!!!");
+    }
+  }
+
+  buttonState = mcp.digitalRead(GREEN_BUTTON);
+  if (buttonState != greenLastButtonState) {
+    greenLastButtonState = buttonState;
+    if (buttonState == HIGH) {
+      // do an action, for example print on Serial
+      buttonUpdateColor(0, 150,  0, 20000, "GREEN!!!");
+    }
+  }
+
+  buttonState = mcp.digitalRead(WHITE_BUTTON);
+  if (buttonState != whiteLastButtonState) {
+    whiteLastButtonState = buttonState;
+    if (buttonState == HIGH) {
+      // do an action, for example print on Serial
+      buttonUpdateColor(150, 150, 150, 25000, "WHITE!!!");
     }
   }
 
 
+  // Check for serial input
   if (Serial.available() > 0) {
     String input = Serial.readStringUntil('\n');
     input.trim();
@@ -125,8 +193,10 @@ void updateLEDs(){
 }
 
 void buttonUpdateColor(int newRed, int newGreen, int newBlue, int position, char* msg ) {
-  Serial.print(msg);
-  red, green, blue = newRed, newGreen, newBlue;
+  Serial.println(msg);
+  red = newRed;
+  green = newGreen;
+  blue = newBlue;
   targetPosition = position;
   updateMotorTargets();
   updateLEDs();
