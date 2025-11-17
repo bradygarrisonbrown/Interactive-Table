@@ -49,11 +49,11 @@ void setup() {
   Serial.println("MCP23X17 initialized.");
 
   //Button Setup
-  mcp.pinMode(BLUE_BUTTON, INPUT_PULLDOWN);
-  mcp.pinMode(YELL_BUTTON, INPUT_PULLDOWN);
-  mcp.pinMode(RED_BUTTON, INPUT_PULLDOWN);
-  mcp.pinMode(GREEN_BUTTON, INPUT_PULLDOWN);
-  mcp.pinMode(WHITE_BUTTON, INPUT_PULLDOWN);
+  mcp.pinMode(BLUE_BUTTON, INPUT);
+  mcp.pinMode(YELL_BUTTON, INPUT);
+  mcp.pinMode(RED_BUTTON, INPUT);
+  mcp.pinMode(GREEN_BUTTON, INPUT);
+  mcp.pinMode(WHITE_BUTTON, INPUT);
 
   Serial.println("Button pins configured (using internal pull-ups).");
   Serial.println("Press any button...");
