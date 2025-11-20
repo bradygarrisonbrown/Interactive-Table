@@ -1,5 +1,7 @@
 #pragma once
 
+#define TESTING
+
 // Dimensions of our grid
 namespace Constants
 {
