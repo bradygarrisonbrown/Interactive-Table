@@ -25,10 +25,11 @@ inline bool operator==(const xy_t &lhs, const xy_t &rhs) {
 enum class FsmState {
     s_INIT = 0,
     s_CHOOSE_MOLE = 1,
-    s_WAIT = 2,
-    s_HIT_MOLE = 3,
-    s_MISS_HIT = 4,
-    s_TIME_EXPIRED = 5,
+    s_RAISE_MOLE = 2,
+    s_WAIT = 3,
+    s_HIT_MOLE = 4,
+    s_MISS_HIT = 5,
+    s_TIME_EXPIRED = 6,
     s_CLEAR_MOLE = 7,
     s_GAME_OVER = 8,
 };
