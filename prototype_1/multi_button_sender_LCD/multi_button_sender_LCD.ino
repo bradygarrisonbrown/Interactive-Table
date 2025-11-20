@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_MCP23X17.h>
+#include <LiquidCrystal.h>
 
 #include <AccelStepper.h>
 #include <MultiStepper.h>
@@ -11,20 +12,24 @@
 //IO Expander
 #include <Adafruit_MCP23X17.h>
 
+// Creates an LCD object. Parameters: (rs, enable, d4, d5, d6, d7)
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+
 //Serial
 #include <SoftwareSerial.h>
 SoftwareSerial link(6, 7);
 
 // NeoPixel setup
-#define LED_PIN     5
+#define LED_PIN     8
 #define LED_COUNT   256
-#define BRIGHTNESS  10
+#define BRIGHTNESS  250
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 int red = 0, green = 0, blue = 0;
 
 Adafruit_MCP23X17 mcp;
 
-//Button Stuff
+//Button Stuff - NOTE: THESE PINS ARE FOR MCP
 #define BLUE_BUTTON  8
 
 #define YELL_BUTTON  9
@@ -40,6 +45,12 @@ void setup() {
   Serial.begin(9600);
   link.begin(9600);
   Serial.println("Starting MCP23X17 Button Test...");
+
+  // set up the LCD's number of columns and rows:
+  lcd.begin(16, 2);
+
+  // Clears the LCD screen
+  lcd.clear();
 
   // Initialize MCP23X17 over I2C
   if (!mcp.begin_I2C()) {
@@ -129,7 +140,8 @@ void updateLEDs(){
 
 void buttonUpdateColor(int newRed, int newGreen, int newBlue, char* target, char* msg ) {
   link.println(target);
-  Serial.println(msg);
+  lcd.clear();
+  lcd.print(msg);
   red = newRed;
   green = newGreen;
   blue = newBlue;
