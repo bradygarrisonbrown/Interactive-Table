@@ -27,7 +27,8 @@ SoftwareSerial link(6, 7);
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 int red = 0, green = 0, blue = 0;
 
-Adafruit_MCP23X17 mcp;
+constexpr uint8_t MCP_COUNT = 2;
+Adafruit_MCP23X17 mcp[MCP_COUNT];
 
 //Button Stuff - NOTE: THESE PINS ARE FOR MCP
 #define BLUE_BUTTON  12
@@ -53,18 +54,22 @@ void setup() {
   lcd.clear();
 
   // Initialize MCP23X17 over I2C
-  if (!mcp.begin_I2C()) {
-    Serial.println("MCP23X17 not found! Check wiring or address (default 0x20).");
-    while (1);
+  for (int i = 0; i < MCP_COUNT; ++i) {
+    // IMPORTANT: You need to assign a unique i2c addr to each i/o expander!!!
+    // Correspondingly: You must set D0, D1, D2 to the right offset for it work.
+    if (!mcp[i].begin_I2C(MCP23XXX_ADDR + i)) {
+      Serial.println("Error.");
+      // while (1);
+    }
   }
   Serial.println("MCP23X17 initialized.");
 
   //Button Setup
-  mcp.pinMode(BLUE_BUTTON, INPUT_PULLDOWN);
-  mcp.pinMode(YELL_BUTTON, INPUT_PULLDOWN);
-  mcp.pinMode(RED_BUTTON, INPUT_PULLDOWN);
-  mcp.pinMode(GREEN_BUTTON, INPUT_PULLDOWN);
-  mcp.pinMode(WHITE_BUTTON, INPUT_PULLDOWN);
+  mcp[1].pinMode(BLUE_BUTTON, INPUT_PULLDOWN);
+  mcp[1].pinMode(YELL_BUTTON, INPUT_PULLDOWN);
+  mcp[1].pinMode(RED_BUTTON, INPUT_PULLDOWN);
+  mcp[1].pinMode(GREEN_BUTTON, INPUT_PULLDOWN);
+  mcp[1].pinMode(WHITE_BUTTON, INPUT_PULLDOWN);
 
   Serial.println("Button pins configured (using internal pull-ups).");
   Serial.println("Press any button...");
@@ -83,7 +88,7 @@ void setup() {
 
 void loop() {
   // Buttons are wired to ground, so LOW = pressed
-  byte buttonState = mcp.digitalRead(BLUE_BUTTON);
+  byte buttonState = mcp[1].digitalRead(BLUE_BUTTON);
   if (buttonState == HIGH) {
   //Serial.println("BLUE!");
   // do an action, for example print on Serial
@@ -91,7 +96,7 @@ void loop() {
   }
   
 
-  buttonState = mcp.digitalRead(YELL_BUTTON);
+  buttonState = mcp[1].digitalRead(YELL_BUTTON);
   if (buttonState == HIGH) {
     //Serial.println("YELLOW!");
     // do an action, for example print on Serial
@@ -99,7 +104,7 @@ void loop() {
   }
   
 
-  buttonState = mcp.digitalRead(RED_BUTTON);
+  buttonState = mcp[1].digitalRead(RED_BUTTON);
   if (buttonState == HIGH) {
     //Serial.println("RED!");
     // do an action, for example print on Serial
@@ -107,7 +112,7 @@ void loop() {
   }
   
 
-  buttonState = mcp.digitalRead(GREEN_BUTTON);
+  buttonState = mcp[1].digitalRead(GREEN_BUTTON);
   if (buttonState == HIGH) {
     //Serial.println("GREEN!");
     // do an action, for example print on Serial
@@ -115,7 +120,7 @@ void loop() {
   }
   
 
-  buttonState = mcp.digitalRead(WHITE_BUTTON);
+  buttonState = mcp[1].digitalRead(WHITE_BUTTON);
   
   if (buttonState == HIGH) {
     //Serial.println("WHITE!");
