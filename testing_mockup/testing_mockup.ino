@@ -9,14 +9,23 @@ void setup()
     while(true);
 }
 
-void loop()
-{
+void loop() {
+    xy_t m = fs.moleXy;
+
+    long dist = stepper[m.x][m.y].distanceToGo();
+
+    fs = updateFSM(fs,
+                   numRounds,
+                   readButtons(),
+                   millis(),
+                   dist);   
 }
 
 full_state_t updateFSM(full_state_t currState,
                        int numRounds,
                        ButtonGrid buttons,
-                       unsigned long clock)
+                       unsigned long clock,
+                       long distanceToGoForMole)   // NEW
 {
     const auto moleStartMs = currState.moleStartMs;
     const auto moleDurationMs = currState.moleDurationMs;
@@ -30,117 +39,101 @@ full_state_t updateFSM(full_state_t currState,
     switch (fsm_state)
     {
     // ------------------------------------
-    // 1. INIT → CHOOSE_MOLE
+    // INIT → CHOOSE_MOLE
     // ------------------------------------
     case FsmState::s_INIT:
-        if (numRounds != 0) {   // t1-2
+        if (numRounds != 0) {
             ret.currentRound = 1;
             ret.score = 0;
-            ret.moleDurationMs = currState.moleDurationMs; // already constant
             ret.moleStartMs = 0;
             ret.fsmState = FsmState::s_CHOOSE_MOLE;
         }
         break;
 
     // ------------------------------------
-    // 2. CHOOSE_MOLE → RAISE_MOLE or GAME_OVER
+    // CHOOSE_MOLE → RAISE_MOLE or GAME_OVER
     // ------------------------------------
     case FsmState::s_CHOOSE_MOLE:
 
-        // check for game over first (t2-9)
         if (currentRound > numRounds) {
             displayLCD("Game Over!", ret.score);
             ret.fsmState = FsmState::s_GAME_OVER;
             break;
         }
 
-        // Otherwise choose mole (t2-3)
-        ret.moleXy = { random(0,3), random(0,3) }; 
+        ret.moleXy = { random(0,3), random(0,3) };
         ret.moleStartMs = clock;
-        // set motor to raise target
-        setHeight(ret.moleXy.x, ret.moleXy.y, /* target height */);
+
+        // Trigger raising the mole now
+        setHeight(ret.moleXy.x, ret.moleXy.y, TARGET_RISE_HEIGHT);
 
         ret.fsmState = FsmState::s_RAISE_MOLE;
         break;
 
     // ------------------------------------
-    // 3. RAISE_MOLE → WAIT
+    // RAISE_MOLE → WAIT
     // ------------------------------------
     case FsmState::s_RAISE_MOLE:
-        // Wait until motor reaches height
-        // Example: if (stepper[moleXy.x][moleXy.y].distanceToGo() == 0)
-        if (distanceToGo(moleXy) == 0) {
+        // CHECK USING PROVIDED distanceToGoForMole
+        if (distanceToGoForMole == 0) {
             ret.fsmState = FsmState::s_WAIT;
         }
         break;
 
     // ------------------------------------
-    // 4. WAIT → HIT, MISS, or TIME_EXPIRED
+    // WAIT → HIT, MISS, TIME_EXPIRED
     // ------------------------------------
     case FsmState::s_WAIT: {
-        bool anyButtonPressed = false;
-        bool hitCorrect = false;
+        bool anyPress = false;
+        bool correct = false;
 
-        // scan grid
-        for (int y = 0; y < 3; y++) {
-            for (int x = 0; x < 3; x++) {
+        for (int y = 0; y < 3; y++)
+            for (int x = 0; x < 3; x++)
                 if (buttons[y][x]) {
-                    anyButtonPressed = true;
-                    if (x == moleXy.x && y == moleXy.y) hitCorrect = true;
+                    anyPress = true;
+                    if (x == moleXy.x && y == moleXy.y) correct = true;
                 }
-            }
-        }
 
-        // (t4-5) HIT
-        if (anyButtonPressed && hitCorrect) {
+        if (anyPress && correct) {
             ret.score = score + 1;
             ret.fsmState = FsmState::s_HIT_MOLE;
         }
-        // (t4-6) MISS
-        else if (anyButtonPressed && !hitCorrect) {
+        else if (anyPress && !correct) {
             ret.score = score - 1;
             ret.fsmState = FsmState::s_MISS_HIT;
         }
-        // (t4-7) TIME_EXPIRED
         else if (clock - moleStartMs > moleDurationMs) {
             ret.fsmState = FsmState::s_TIME_EXPIRED;
         }
-
         break;
     }
 
     // ------------------------------------
-    // 5, 6, 7 → CLEAR_MOLE
+    // HIT / MISS / TIME_EXPIRED → CLEAR_MOLE
     // ------------------------------------
     case FsmState::s_HIT_MOLE:
     case FsmState::s_MISS_HIT:
     case FsmState::s_TIME_EXPIRED:
-        // all automatically transition to CLEAR
-        setHeight(moleXy.x, moleXy.y, 0);  // send motor down
+        setHeight(moleXy.x, moleXy.y, 0);
         ret.fsmState = FsmState::s_CLEAR_MOLE;
         break;
 
     // ------------------------------------
-    // 8. CLEAR_MOLE → CHOOSE_MOLE
+    // CLEAR_MOLE → CHOOSE_MOLE
     // ------------------------------------
     case FsmState::s_CLEAR_MOLE:
-        // Wait for motor to reach bottom
-        if (distanceToGo(moleXy) == 0) {
+        // Use the provided motor query again
+        if (distanceToGoForMole == 0) {
             ret.currentRound = currentRound + 1;
             ret.fsmState = FsmState::s_CHOOSE_MOLE;
         }
         break;
 
-    // ------------------------------------
-    // 9. GAME_OVER (terminal)
-    // ------------------------------------
     case FsmState::s_GAME_OVER:
-        // no transitions
         break;
 
     default:
         Serial.println("Invalid state");
-        break;
     }
 
     return ret;
