@@ -2,6 +2,8 @@
 
 #define TESTING
 
+#include <array>
+
 // Dimensions of our grid
 namespace Constants
 {
@@ -9,41 +11,45 @@ namespace Constants
     inline constexpr int HEIGHT = 3;
 }
 
-typedef struct
-{
-    long durationMs;
-    long targets[Constants::HEIGHT][Constants::WIDTH];
-} configuration_t;
+using ButtonGrid = std::array<std::array<bool, 3>, 3>;
 
-inline bool operator==(const configuration_t &lhs, const configuration_t &rhs)
-{
-    if (lhs.durationMs != rhs.durationMs)
-    {
-        return false;
-    }
+typedef struct {
+    int x;
+    int y;
+} xy_t;
 
-    for (int y = 0; y < Constants::HEIGHT; ++y)
-    {
-        for (int x = 0; x < Constants::WIDTH; ++x)
-        {
-            if (lhs.targets[y][x] != rhs.targets[y][x])
-            {
-                return false;
-            }
-        }
-    }
-    return true;
+inline bool operator==(const xy_t &lhs, const xy_t &rhs) {
+    return lhs.x == rhs.x && lhs.y == rhs.y;
 }
 
-typedef struct
-{
-    configuration_t config;
-    long phaseStart;
-} full_state_t;
+enum class FsmState {
+    s_INIT = 0,
+    s_CHOOSE_MOLE = 1,
+    s_WAIT = 2,
+    s_HIT_MOLE = 3,
+    s_MISS_HIT = 4,
+    s_TIME_EXPIRED = 5,
+    s_CLEAR_MOLE = 7,
+    s_GAME_OVER = 8,
+};
 
-inline bool operator==(const full_state_t &lhs, const full_state_t &rhs)
+struct full_state_t
 {
-    return lhs.phaseStart == rhs.phaseStart && lhs.config == rhs.config;
+    long moleStartMs;
+    long moleDurationMs;
+    xy_t moleXy;
+    int currentRound;
+    int score;
+    FsmState fsmState;
+};
+
+inline bool operator==(const full_state_t &lhs, const full_state_t &rhs) {
+    return lhs.moleStartMs == rhs.moleStartMs &&
+    lhs.moleDurationMs == rhs.moleDurationMs &&
+    lhs.moleXy == rhs.moleXy &&
+    lhs.currentRound == rhs.currentRound &&
+    lhs.score == rhs.score &&
+    lhs.fsmState == rhs.fsmState;
 }
 
-full_state_t updateFSM(full_state_t currState, unsigned long clock, bool emergencyStop, bool hasNewConfiguration, configuration_t newestConfiguration);
+full_state_t updateFSM(full_state_t currState, int numRounds, ButtonGrid buttons, unsigned long clock);
