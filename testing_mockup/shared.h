@@ -9,6 +9,9 @@ namespace Constants
 {
     inline constexpr int WIDTH = 3;
     inline constexpr int HEIGHT = 3;
+    // TODO: find correct value
+    inline constexpr long MOLE_RISE_HEIGHT = 1;
+    inline constexpr long DEFAULT_MOLE_DURATION = 1500;
 }
 
 using ButtonGrid = std::array<std::array<bool, 3>, 3>;
@@ -40,6 +43,7 @@ struct full_state_t
     long moleDurationMs;
     xy_t moleXy;
     int currentRound;
+    int totalRounds;
     int score;
     FsmState fsmState;
 };
@@ -53,4 +57,8 @@ inline bool operator==(const full_state_t &lhs, const full_state_t &rhs) {
     lhs.fsmState == rhs.fsmState;
 }
 
-full_state_t updateFSM(full_state_t currState, int numRounds, ButtonGrid buttons, unsigned long clock);
+full_state_t updateFSM(full_state_t currState,
+                       int numRounds,
+                       ButtonGrid buttons,
+                       long moleDistanceToGo,
+                       unsigned long clock);
