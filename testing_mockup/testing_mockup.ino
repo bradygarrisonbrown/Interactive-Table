@@ -6,21 +6,37 @@ void setup() {
   while (!Serial)
     ;
 
+#ifdef TESTING
   testAll();
   while (true)
     ;
+#else
+    Serial.println("Testing NOT enabled");
+    initializeLED();
+#endif
 }
 
 void loop() {
-  // xy_t m = fs.moleXy;
+    static full_state_t fs = {
+        /* moleStartMs=*/ 0,
+        /* moleDurationMs=*/ 0,
+        /* moleXy=*/ {-1, -1},
+        /* currentRound=*/ 0,
+        /* totalRounds=*/ 0,
+        /* score=*/ 0,
+        /* fsmState=*/ FsmState::s_INIT,
+    };
 
-  // long dist = stepper[m.x][m.y].distanceToGo();
+//   long dist = stepper[m.x][m.y].distanceToGo();
+    long dist = 0;
 
-  // fs = updateFSM(fs,
-  //                numRounds,
-  //                readButtons(),
-  //                millis(),
-  //                dist);
+    const auto numRounds = 10;
+
+    fs = updateFSM(fs,
+                numRounds,
+                readButtons(),
+                dist,
+                millis());
 }
 
 full_state_t updateFSM(full_state_t currState,
@@ -46,6 +62,7 @@ full_state_t updateFSM(full_state_t currState,
     case FsmState::s_INIT:
       if (numRounds != 0) {
         ret.currentRound = 1;
+        ret.totalRounds = numRounds;
         ret.score = 0;
         ret.moleDurationMs = 0;
         ret.moleStartMs = 0;
@@ -58,9 +75,11 @@ full_state_t updateFSM(full_state_t currState,
     // CHOOSE_MOLE → RAISE_MOLE or GAME_OVER
     // ------------------------------------
     case FsmState::s_CHOOSE_MOLE:
-
       if (currentRound > totalRounds) {
         displayLCD("Game Over!", ret.score);
+        Serial.println("Game over!");
+        Serial.print("Score: ");
+        Serial.println(score);
         ret.fsmState = FsmState::s_GAME_OVER;
         break;
       }
@@ -78,10 +97,8 @@ full_state_t updateFSM(full_state_t currState,
     // RAISE_MOLE → WAIT
     // ------------------------------------
     case FsmState::s_RAISE_MOLE:
-        Serial.println("in raise mole");
       // CHECK USING PROVIDED distanceToGoForMole
       if (moleDistanceToGo == 0) {
-        Serial.println("it's zero");
         ret.fsmState = FsmState::s_WAIT;
         ret.moleStartMs = clock;
       }

@@ -1,8 +1,9 @@
 #pragma once
 
-#define TESTING
-
 #include <array>
+
+// UNCOMMENT to run tests!
+// #define TESTING
 
 // Dimensions of our grid
 namespace Constants
@@ -11,7 +12,7 @@ namespace Constants
     inline constexpr int HEIGHT = 3;
     // TODO: find correct value
     inline constexpr long MOLE_RISE_HEIGHT = 1;
-    inline constexpr long DEFAULT_MOLE_DURATION = 1500;
+    inline constexpr long DEFAULT_MOLE_DURATION = 2000;
 }
 
 using ButtonGrid = std::array<std::array<bool, 3>, 3>;
