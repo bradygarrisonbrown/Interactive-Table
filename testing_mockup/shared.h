@@ -1,14 +1,18 @@
 #pragma once
 
-#define TESTING
-
 #include <array>
+
+// UNCOMMENT to run tests!
+// #define TESTING
 
 // Dimensions of our grid
 namespace Constants
 {
     inline constexpr int WIDTH = 3;
     inline constexpr int HEIGHT = 3;
+    // TODO: find correct value
+    inline constexpr long MOLE_RISE_HEIGHT = 1;
+    inline constexpr long DEFAULT_MOLE_DURATION = 2000;
 }
 
 using ButtonGrid = std::array<std::array<bool, 3>, 3>;
@@ -23,15 +27,15 @@ inline bool operator==(const xy_t &lhs, const xy_t &rhs) {
 }
 
 enum class FsmState {
-    s_INIT = 0,
-    s_CHOOSE_MOLE = 1,
-    s_RAISE_MOLE = 2,
-    s_WAIT = 3,
-    s_HIT_MOLE = 4,
-    s_MISS_HIT = 5,
-    s_TIME_EXPIRED = 6,
-    s_CLEAR_MOLE = 7,
-    s_GAME_OVER = 8,
+    s_INIT = 1,
+    s_CHOOSE_MOLE = 2,
+    s_RAISE_MOLE = 3,
+    s_WAIT = 4,
+    s_HIT_MOLE = 5,
+    s_MISS_HIT = 6,
+    s_TIME_EXPIRED = 7,
+    s_CLEAR_MOLE = 8,
+    s_GAME_OVER = 9,
 };
 
 struct full_state_t
@@ -40,6 +44,7 @@ struct full_state_t
     long moleDurationMs;
     xy_t moleXy;
     int currentRound;
+    int totalRounds;
     int score;
     FsmState fsmState;
 };
@@ -53,4 +58,8 @@ inline bool operator==(const full_state_t &lhs, const full_state_t &rhs) {
     lhs.fsmState == rhs.fsmState;
 }
 
-full_state_t updateFSM(full_state_t currState, int numRounds, ButtonGrid buttons, unsigned long clock);
+full_state_t updateFSM(full_state_t currState,
+                       int numRounds,
+                       ButtonGrid buttons,
+                       long moleDistanceToGo,
+                       unsigned long clock);
