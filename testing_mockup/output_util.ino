@@ -1,6 +1,7 @@
 #include "output_util.h"
 
-#include <Adafruit_NeoPixel.h>
+#include "Arduino_LED_Matrix.h"
+#include <array>
 
 constexpr int LED_PIN = 8;
 constexpr int LED_COUNT = 256;
@@ -8,27 +9,25 @@ constexpr int LED_BRIGHTNESS = 5;
 
 constexpr uint32_t EMPTY = 0;
 
-Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+ArduinoLEDMatrix ledMatrix;
 
 void initializeLED() {
-  strip.begin();
-  strip.show();
-  strip.setBrightness(LED_BRIGHTNESS);
+  ledMatrix.begin();
 }
 
 #ifdef TESTING
 void setHeight(xy_t pos, long height) {}
 #else
+constexpr int LED_HEIGHT = 12;
+constexpr int LED_WIDTH = 8;
+std::array<std::array<byte, LED_HEIGHT>, LED_WIDTH> frame_{};
 void setHeight(xy_t pos, long height) {
-  // To deal with the silly LED snake numbering, we leave 1 empty row
-  const int ledIndex = 16 * (pos.y  * 2) + pos.x;
-
   if (height == 0) {
-    strip.setPixelColor(ledIndex, EMPTY);
+    frame_[pos.y][pos.x] = 0;
   } else {
-    strip.setPixelColor(ledIndex, strip.Color(150, 0, 0));
+    frame_[pos.y][pos.x] = 1;
   }
-  strip.show();
+  ledMatrix.renderBitmap(frame_.data(), LED_HEIGHT, LED_WIDTH);
 }
 #endif
 
