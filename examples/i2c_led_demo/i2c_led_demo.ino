@@ -7,7 +7,7 @@
 #include <Adafruit_MCP23X08.h>
 #include <Adafruit_MCP23X17.h>
 
-#define LED_PIN 0     // MCP23XXX pin LED is attached to, I/O expander frame of reference
+#define LED_PIN 8     // MCP23XXX pin LED is attached to, I/O expander frame of reference
 
 // only used for SPI
 // #define CS_PIN 6
