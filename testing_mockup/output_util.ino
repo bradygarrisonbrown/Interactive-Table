@@ -43,6 +43,26 @@ xy_t randomMole() {
 }
 #endif
 
+// coordinates in row, col
+constexpr int BUTTON_1_PIN = 0; // 0,0
+constexpr int BUTTON_2_PIN = 1; // 0,1
+constexpr int BUTTON_3_PIN = 2; // 0,2
+constexpr int BUTTON_4_PIN = 3; // 1,0
+constexpr int BUTTON_5_PIN = 4; // 1,1
+constexpr int BUTTON_6_PIN = 5; // 1,2
+constexpr int BUTTON_7_PIN = 6; // 2,0
+constexpr int BUTTON_8_PIN = 7; // 2,1
+constexpr int BUTTON_9_PIN = 8; // 2,2
+
 ButtonGrid readButtons() {
-  return std::array<std::array<bool, 3>, 3>{};
+  auto grid = std::array<std::array<bool, 3>, 3>{};
+  for (int y = 0; y < Constants::HEIGHT; ++y) {
+    for (int x = 0; x < Constants::WIDTH; ++x) {
+      const auto buttonIndex = y * Constants::HEIGHT + x;
+      if (digitalRead(buttonIndex) == HIGH) {
+        grid[y][x] = true;
+      }
+    }
+  }
+  return grid;
 }

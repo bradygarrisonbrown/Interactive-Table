@@ -1,6 +1,8 @@
 #include "shared.h"
 #include "output_util.h"
 
+int NUM_ROUNDS = 10;
+
 void setup() {
   Serial.begin(9600);
   while (!Serial)
@@ -13,6 +15,12 @@ void setup() {
 #else
     Serial.println("Testing NOT enabled");
     initializeLED();
+
+    if (Serial.available() > 0) {
+      NUM_ROUNDS = Serial.parseInt();
+      Serial.print("With number of rounds: ");
+      Serial.println(NUM_ROUNDS);
+    }
 #endif
 }
 
@@ -30,10 +38,8 @@ void loop() {
 //   long dist = stepper[m.x][m.y].distanceToGo();
     long dist = 0;
 
-    const auto numRounds = 10;
-
     fs = updateFSM(fs,
-                numRounds,
+                NUM_ROUNDS,
                 readButtons(),
                 dist,
                 millis());
