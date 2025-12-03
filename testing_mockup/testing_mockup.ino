@@ -1,7 +1,7 @@
 #include "shared.h"
 #include "output_util.h"
 
-int NUM_ROUNDS = 10;
+int NUM_ROUNDS = -1;
 
 void setup() {
   Serial.begin(9600);
@@ -15,16 +15,29 @@ void setup() {
 #else
     Serial.println("Testing NOT enabled");
     initializeLED();
-
-    if (Serial.available() > 0) {
-      NUM_ROUNDS = Serial.parseInt();
-      Serial.print("With number of rounds: ");
-      Serial.println(NUM_ROUNDS);
-    }
+    Serial.println("Enter number of rounds:");
 #endif
 }
 
 void loop() {
+    if (Serial.available() > 0 && NUM_ROUNDS == -1) {
+      NUM_ROUNDS = Serial.parseInt();
+      if (NUM_ROUNDS <= 0) {
+        Serial.println("Please enter non-zero rounds.");
+        NUM_ROUNDS = -1;
+
+        Serial.read(); // expect this to be a \n
+      } else {
+        Serial.print("Starting with number of rounds: ");
+        Serial.println(NUM_ROUNDS);
+      }
+    }
+
+    if (NUM_ROUNDS == -1) {
+      // We don't want to do anything until the user says how many rounds
+      return;
+    }
+
     static full_state_t fs = {
         /* moleStartMs=*/ 0,
         /* moleDurationMs=*/ 0,
