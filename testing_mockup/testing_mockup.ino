@@ -43,6 +43,8 @@ void loop() {
                 readButtons(),
                 dist,
                 millis());
+
+    delay(10);
 }
 
 full_state_t updateFSM(full_state_t currState,
