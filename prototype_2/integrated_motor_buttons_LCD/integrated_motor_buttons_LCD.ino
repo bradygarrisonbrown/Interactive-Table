@@ -27,8 +27,7 @@ SoftwareSerial link(6, 7);
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 int red = 0, green = 0, blue = 0;
 
-constexpr uint8_t MCP_COUNT = 2;
-Adafruit_MCP23X17 mcp[MCP_COUNT];
+Adafruit_MCP23X17 mcp;
 
 //Button Stuff - NOTE: THESE PINS ARE FOR MCP
 #define BLUE_BUTTON  12
@@ -54,22 +53,20 @@ void setup() {
   lcd.clear();
 
   // Initialize MCP23X17 over I2C
-  for (int i = 0; i < MCP_COUNT; ++i) {
-    // IMPORTANT: You need to assign a unique i2c addr to each i/o expander!!!
-    // Correspondingly: You must set D0, D1, D2 to the right offset for it work.
-    if (!mcp[i].begin_I2C(MCP23XXX_ADDR + i)) {
-      Serial.println("Error.");
+  
+  if (!mcp.begin_I2C()) {
+    Serial.println("Error.");
       // while (1);
     }
-  }
+  
   Serial.println("MCP23X17 initialized.");
 
   //Button Setup
-  mcp[1].pinMode(BLUE_BUTTON, INPUT_PULLDOWN);
-  mcp[1].pinMode(YELL_BUTTON, INPUT_PULLDOWN);
-  mcp[1].pinMode(RED_BUTTON, INPUT_PULLDOWN);
-  mcp[1].pinMode(GREEN_BUTTON, INPUT_PULLDOWN);
-  mcp[1].pinMode(WHITE_BUTTON, INPUT_PULLDOWN);
+  mcp.pinMode(BLUE_BUTTON, INPUT_PULLDOWN);
+  mcp.pinMode(YELL_BUTTON, INPUT_PULLDOWN);
+  mcp.pinMode(RED_BUTTON, INPUT_PULLDOWN);
+  mcp.pinMode(GREEN_BUTTON, INPUT_PULLDOWN);
+  mcp.pinMode(WHITE_BUTTON, INPUT_PULLDOWN);
 
   Serial.println("Button pins configured (using internal pull-ups).");
   Serial.println("Press any button...");
@@ -85,54 +82,50 @@ void setup() {
 
   Serial.println("SETUP DONE!");
 }
+// Global variables to track button state for reliable press detection
+static byte lastBlue   = LOW;
+static byte lastYellow = LOW;
+static byte lastRed    = LOW;
+static byte lastGreen  = LOW;
+static byte lastWhite  = LOW;
 
 void loop() {
-  // Buttons are wired to ground, so LOW = pressed
-  byte buttonState = mcp[1].digitalRead(BLUE_BUTTON);
-  if (buttonState == HIGH) {
-  //Serial.println("BLUE!");
-  // do an action, for example print on Serial
-  buttonUpdateColor(0, 0, 150, "0", "BLUE");
-  }
   
-
-  buttonState = mcp[1].digitalRead(YELL_BUTTON);
-  if (buttonState == HIGH) {
-    //Serial.println("YELLOW!");
-    // do an action, for example print on Serial
-    buttonUpdateColor(150, 150, 0, "5000", "YELLOW");
-  }
-  
-
-  buttonState = mcp[1].digitalRead(RED_BUTTON);
-  if (buttonState == HIGH) {
-    //Serial.println("RED!");
-    // do an action, for example print on Serial
-    buttonUpdateColor(150, 0, 0, "10000", "RED");
-  }
-  
-
-  buttonState = mcp[1].digitalRead(GREEN_BUTTON);
-  if (buttonState == HIGH) {
-    //Serial.println("GREEN!");
-    // do an action, for example print on Serial
-    buttonUpdateColor(0, 150,  0, "15000", "GREEN");
-  }
-  
-
-  buttonState = mcp[1].digitalRead(WHITE_BUTTON);
-  
-  if (buttonState == HIGH) {
-    //Serial.println("WHITE!");
-    // do an action, for example print on Serial
-    buttonUpdateColor(150, 150, 150, "20000", "WHITE");
-  }
-
-  
-
-  delay(200); // debounce + avoid spamming the serial monitor
+  // Call the checking function for each button.
+  checkButton(BLUE_BUTTON,  &lastBlue,   0, 0, 150, "0", "BLUE", "BLUE_BUTTON");
+  checkButton(YELL_BUTTON,  &lastYellow, 150, 150, 0, "5000", "YELLOW", "YELL_BUTTON");
+  checkButton(RED_BUTTON,   &lastRed,    150, 0, 0, "10000", "RED", "RED_BUTTON");
+  checkButton(GREEN_BUTTON, &lastGreen,  0, 150, 0, "15000", "GREEN", "GREEN_BUTTON");
+  checkButton(WHITE_BUTTON, &lastWhite,  150, 150, 150, "20000", "WHITE", "WHITE_BUTTON");
 }
 
+void checkButton(uint8_t pin, byte *lastState, int r, int g, int b, const char* target, const char* msg, const char* buttonName) {
+  
+  byte currentState = mcp.digitalRead(pin);
+  
+  // If the state has changed since the last loop iteration
+  if (currentState != *lastState) {
+    
+    
+    // Wait for a short debounce period to ensure stability
+    delay(20);
+    
+    // Read the state again after debouncing
+    byte debouncedState = mcp.digitalRead(pin);
+
+    // If the state is LOW (pressed) after debouncing, it's a confirmed press
+    if (debouncedState == LOW) {
+      
+      
+      buttonUpdateColor(r, g, b, target, msg);
+  
+      
+    } 
+
+  // Update the last state for the next loop iteration
+  *lastState = currentState;
+}
+}
 
 void updateLEDs(){
       // Fill all LEDs with chosen color
@@ -143,7 +136,7 @@ void updateLEDs(){
     strip.show();  // Only call once, after filling all pixels
 }
 
-void buttonUpdateColor(int newRed, int newGreen, int newBlue, char* target, char* msg ) {
+void buttonUpdateColor(int newRed, int newGreen, int newBlue, const char* target, const char* msg ) {
   link.println(target);
   lcd.clear();
   lcd.print(msg);
