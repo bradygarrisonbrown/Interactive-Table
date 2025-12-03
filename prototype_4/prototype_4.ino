@@ -5,6 +5,9 @@ struct StepperConfig {
   uint8_t p1, p2, p3, p4;
 };
 
+/**
+ * Copy/paste this class where ever you want to use stuff
+ */
 class MCPStepper : public AccelStepper {
   Adafruit_MCP23X17 *mcp_;
   uint8_t pin_[4];

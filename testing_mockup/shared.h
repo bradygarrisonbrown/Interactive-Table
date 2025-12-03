@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SHARED_H
+#define SHARED_H
 
 #include <array>
 
@@ -11,7 +12,7 @@ namespace Constants
     inline constexpr int WIDTH = 3;
     inline constexpr int HEIGHT = 3;
     // TODO: find correct value
-    inline constexpr long MOLE_RISE_HEIGHT = 1;
+    inline constexpr long MOLE_RISE_HEIGHT = 500;
     inline constexpr long DEFAULT_MOLE_DURATION = 2000;
 }
 
@@ -63,3 +64,5 @@ full_state_t updateFSM(full_state_t currState,
                        ButtonGrid buttons,
                        long moleDistanceToGo,
                        unsigned long clock);
+
+#endif

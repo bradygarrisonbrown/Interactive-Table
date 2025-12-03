@@ -1,7 +1,14 @@
 #include "shared.h"
 #include "output_util.h"
 
+#include <Adafruit_MCP23X17.h>
+
 int NUM_ROUNDS = -1;
+
+StepperManager STEPPER_MANAGER;
+Adafruit_MCP23X17 mcp1;
+Adafruit_MCP23X17 mcp2;
+Adafruit_MCP23X17 mcp3;
 
 void setup() {
   Serial.begin(9600);
@@ -14,7 +21,24 @@ void setup() {
     ;
 #else
     Serial.println("Testing NOT enabled");
+
     initializeLED();
+
+    // Help I2C keep up (I got this from asking LLM, says it should be safe)
+    Wire.setClock(400000);
+    if (!mcp1.begin_I2C()) {
+      Serial.println("Error starting mcp1");
+    }
+
+    if (!mcp2.begin_I2C(0x20 + 1)) {
+      Serial.println("Error starting mcp2");
+    }
+
+    if (!mcp3.begin_I2C(0x20 + 2)) {
+      Serial.println("Error starting mcp3");
+    }
+    STEPPER_MANAGER.initialize(&mcp1, &mcp2, &mcp3);
+
     Serial.println("Enter number of rounds:");
 #endif
 }
@@ -49,7 +73,7 @@ void loop() {
     };
 
 //   long dist = stepper[m.x][m.y].distanceToGo();
-    long dist = 0;
+    long dist = STEPPER_MANAGER.distanceToGo(fs.moleXy);
 
     fs = updateFSM(fs,
                 NUM_ROUNDS,
@@ -58,6 +82,7 @@ void loop() {
                 millis());
 
     delay(10);
+
 }
 
 full_state_t updateFSM(full_state_t currState,
@@ -109,7 +134,7 @@ full_state_t updateFSM(full_state_t currState,
       ret.moleDurationMs = Constants::DEFAULT_MOLE_DURATION;
 
       // Set the mole's target height
-      setHeight(ret.moleXy, Constants::MOLE_RISE_HEIGHT);
+      STEPPER_MANAGER.setHeight(ret.moleXy, Constants::MOLE_RISE_HEIGHT);
 
       ret.fsmState = FsmState::s_RAISE_MOLE;
       break;
@@ -122,6 +147,8 @@ full_state_t updateFSM(full_state_t currState,
       if (moleDistanceToGo == 0) {
         ret.fsmState = FsmState::s_WAIT;
         ret.moleStartMs = clock;
+      } else {
+        STEPPER_MANAGER.step();
       }
       break;
 
@@ -158,7 +185,7 @@ full_state_t updateFSM(full_state_t currState,
     case FsmState::s_HIT_MOLE:
     case FsmState::s_MISS_HIT:
     case FsmState::s_TIME_EXPIRED:
-      setHeight(moleXy, 0);
+      STEPPER_MANAGER.setHeight(moleXy, 0);
       ret.fsmState = FsmState::s_CLEAR_MOLE;
       break;
 
@@ -170,6 +197,8 @@ full_state_t updateFSM(full_state_t currState,
       if (moleDistanceToGo == 0) {
         ret.currentRound = currentRound + 1;
         ret.fsmState = FsmState::s_CHOOSE_MOLE;
+      } else {
+        STEPPER_MANAGER.step();
       }
       break;
 
