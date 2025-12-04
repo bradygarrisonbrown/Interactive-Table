@@ -1,5 +1,6 @@
 #include "shared.h"
 #include "output_util.h"
+#include "button_util.h"
 
 #include <Adafruit_MCP23X17.h>
 
@@ -38,12 +39,24 @@ void setup() {
       Serial.println("Error starting mcp3");
     }
     STEPPER_MANAGER.initialize(&mcp1, &mcp2, &mcp3);
+    initializeButtons();
 
     Serial.println("Enter number of rounds:");
 #endif
 }
 
 void loop() {
+  // const auto btns = readButtons();
+  // for (int y = 0; y < Constants::HEIGHT; ++y) {
+  //   for (int x = 0; x < Constants::WIDTH; ++x) {
+  //     if (btns[y][x]) {
+  //       Serial.print(x);
+  //       Serial.print(", ");
+  //       Serial.println(y);
+  //     }
+  //   }
+  // }
+
     if (Serial.available() > 0 && NUM_ROUNDS == -1) {
       NUM_ROUNDS = Serial.parseInt();
       if (NUM_ROUNDS <= 0) {
