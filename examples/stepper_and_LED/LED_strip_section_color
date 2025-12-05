@@ -1,0 +1,155 @@
+#include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+#include <avr/power.h>
+#endif
+
+// NeoPixel setup
+#define LED_PIN     6
+#define LED_COUNT   256
+#define BRIGHTNESS  5
+
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+// --- LED Section Definitions ---
+#define NUM_SECTIONS 9
+#define LEDS_PER_BASE_SECTION (LED_COUNT / NUM_SECTIONS) // 256 / 9 = 28
+#define LEDS_IN_LAST_SECTION (LED_COUNT - (LEDS_PER_BASE_SECTION * (NUM_SECTIONS - 1))) // 32 LEDs
+
+// Array defining the STARTING index of each section
+const int sectionStartIndices[NUM_SECTIONS] = {
+    0,                                      // Section 1 (Start 0)
+    LEDS_PER_BASE_SECTION * 1,              // Section 2 (Start 28)
+    LEDS_PER_BASE_SECTION * 2,              // Section 3 (Start 56)
+    LEDS_PER_BASE_SECTION * 3,              // Section 4 (Start 84)
+    LEDS_PER_BASE_SECTION * 4,              // Section 5 (Start 112)
+    LEDS_PER_BASE_SECTION * 5,              // Section 6 (Start 140)
+    LEDS_PER_BASE_SECTION * 6,              // Section 7 (Start 168)
+    LEDS_PER_BASE_SECTION * 7,              // Section 8 (Start 196)
+    LEDS_PER_BASE_SECTION * 8               // Section 9 (Start 224)
+};
+
+
+// --- Color Enumeration and Mapping ---
+
+// Define the named colors as constants
+enum NamedColors {
+    COLOR_RED,
+    COLOR_GREEN,
+    COLOR_BLUE,
+    COLOR_YELLOW,
+    COLOR_CYAN,
+    COLOR_MAGENTA,
+    COLOR_WHITE,
+    COLOR_BLACK // Turns the section off
+};
+
+// Helper function to convert the NamedColor enum to a 32-bit color value
+uint32_t getColorValue(NamedColors color) {
+    switch (color) {
+        case COLOR_RED:
+            return strip.Color(255, 0, 0);
+        case COLOR_GREEN:
+            return strip.Color(0, 255, 0);
+        case COLOR_BLUE:
+            return strip.Color(0, 0, 255);
+        case COLOR_YELLOW:
+            return strip.Color(255, 255, 0);
+        case COLOR_CYAN:
+            return strip.Color(0, 255, 255);
+        case COLOR_MAGENTA:
+            return strip.Color(255, 0, 255);
+        case COLOR_WHITE:
+            return strip.Color(255, 255, 255);
+        case COLOR_BLACK:
+            return strip.Color(0, 0, 0);
+        default:
+            return strip.Color(0, 0, 0); // Default to black
+    }
+}
+
+// Sets a specific section of the LED strip to a single color using the enum
+// sectionNumber: 1 to 9
+// color: A value from the NamedColors enum
+void setSectionColor(int sectionNumber, NamedColors color) {
+    if (sectionNumber < 1 || sectionNumber > NUM_SECTIONS) return;
+
+    // Convert section number (1-9) to array index (0-8)
+    int index = sectionNumber - 1; 
+
+    int startIndex = sectionStartIndices[index];
+    int sectionLength;
+
+    // Determine the length for the current section
+    if (index == NUM_SECTIONS - 1) { 
+        sectionLength = LEDS_IN_LAST_SECTION;
+    } else {
+        sectionLength = LEDS_PER_BASE_SECTION;
+    }
+    
+    int endIndex = startIndex + sectionLength;
+
+    // Get the 32-bit color value using the new helper function
+    uint32_t packedColor = getColorValue(color);
+
+    // Loop only through the pixels in the target section
+    for (int i = startIndex; i < endIndex; i++) {
+        strip.setPixelColor(i, packedColor);
+    }
+    // Note: strip.show() is called outside this function to update the strip
+}
+
+// ------------------------------------------------------------------
+
+void setup() {
+    // Note: You must integrate this with your stepper/I2C setup code.
+    Serial.begin(115200);
+    Serial.println("NeoPixel Section Control Ready.");
+
+    // Neopixel init
+    #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
+      clock_prescale_set(clock_div_1);
+    #endif
+
+    strip.begin();
+    strip.show(); // Turn off all pixels initially
+    strip.setBrightness(BRIGHTNESS);
+}
+
+// ------------------------------------------------------------------
+
+void loop() {
+    // This is an example of how to use the new color functions.
+    
+    // Example 1: Set a few sections to specific colors
+    strip.clear(); // Always clear the strip before setting new colors
+    
+    // Set Section 1 to Red
+    setSectionColor(1, COLOR_RED);
+
+    // Set Section 5 to Yellow
+    setSectionColor(5, COLOR_YELLOW);
+
+    // Set Section 9 (the largest section) to Cyan
+    setSectionColor(9, COLOR_CYAN);
+    
+    // Set Section 3 to Black (Off)
+    setSectionColor(3, COLOR_BLACK);
+
+    strip.show(); // Display the colors you set
+    delay(2000);  // Wait for 2 seconds
+
+    // Example 2: Cycle through colors for all sections
+    strip.clear();
+    for (int i = 1; i <= NUM_SECTIONS; i++) {
+        // Set odd sections to Magenta
+        if (i % 2 != 0) {
+            setSectionColor(i, COLOR_MAGENTA); 
+        }
+        // Set even sections to Green
+        else {
+            setSectionColor(i, COLOR_GREEN);
+        }
+    }
+    strip.show();
+    delay(2000);
+}
