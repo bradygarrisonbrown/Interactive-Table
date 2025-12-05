@@ -183,11 +183,14 @@ full_state_t updateFSM(full_state_t currState,
         if (anyPress && correct) {
           ret.score = score + 1;
           ret.fsmState = FsmState::s_HIT_MOLE;
+          Serial.println("HIT");
         } else if (anyPress && !correct) {
           ret.score = score - 1;
           ret.fsmState = FsmState::s_MISS_HIT;
+          Serial.println("MISS");
         } else if (clock - moleStartMs > moleDurationMs) {
           ret.fsmState = FsmState::s_TIME_EXPIRED;
+          Serial.println("EXPIRED");
         }
         break;
       }
