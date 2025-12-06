@@ -1,6 +1,7 @@
 #include "shared.h"
 #include "output_util.h"
 #include "button_util.h"
+#include "gpio_stepper_manager.h"
 
 #include <Adafruit_MCP23X17.h>
 
@@ -10,6 +11,8 @@ StepperManager STEPPER_MANAGER;
 Adafruit_MCP23X17 mcp1;
 Adafruit_MCP23X17 mcp2;
 Adafruit_MCP23X17 mcp3;
+
+GpioStepperManager gpioStepperManager = GpioStepperManager::build();
 
 void setup() {
   Serial.begin(9600);
@@ -39,6 +42,7 @@ void setup() {
       Serial.println("Error starting mcp3");
     }
     STEPPER_MANAGER.initialize(&mcp1, &mcp2, &mcp3);
+    gpioStepperManager.initialize();
     initializeButtons();
 
     Serial.println("Enter number of rounds:");
@@ -85,8 +89,7 @@ void loop() {
         /* fsmState=*/ FsmState::s_INIT,
     };
 
-//   long dist = stepper[m.x][m.y].distanceToGo();
-    long dist = STEPPER_MANAGER.distanceToGo(fs.moleXy);
+    long dist = gpioStepperManager.distanceToGo(fs.moleXy);
 
     fs = updateFSM(fs,
                 NUM_ROUNDS,
@@ -147,7 +150,8 @@ full_state_t updateFSM(full_state_t currState,
       ret.moleDurationMs = Constants::DEFAULT_MOLE_DURATION;
 
       // Set the mole's target height
-      STEPPER_MANAGER.setHeight(ret.moleXy, Constants::MOLE_RISE_HEIGHT);
+      // STEPPER_MANAGER.setHeight(ret.moleXy, Constants::MOLE_RISE_HEIGHT);
+      gpioStepperManager.setHeight(ret.moleXy, Constants::MOLE_RISE_HEIGHT);
 
       ret.fsmState = FsmState::s_RAISE_MOLE;
       break;
@@ -161,7 +165,8 @@ full_state_t updateFSM(full_state_t currState,
         ret.fsmState = FsmState::s_WAIT;
         ret.moleStartMs = clock;
       } else {
-        STEPPER_MANAGER.step();
+        // STEPPER_MANAGER.step();
+        gpioStepperManager.step();
       }
       break;
 
@@ -201,7 +206,8 @@ full_state_t updateFSM(full_state_t currState,
     case FsmState::s_HIT_MOLE:
     case FsmState::s_MISS_HIT:
     case FsmState::s_TIME_EXPIRED:
-      STEPPER_MANAGER.setHeight(moleXy, 0);
+      // STEPPER_MANAGER.setHeight(moleXy, 0);
+      gpioStepperManager.setHeight(moleXy, 0);
       ret.fsmState = FsmState::s_CLEAR_MOLE;
       break;
 
@@ -214,7 +220,8 @@ full_state_t updateFSM(full_state_t currState,
         ret.currentRound = currentRound + 1;
         ret.fsmState = FsmState::s_CHOOSE_MOLE;
       } else {
-        STEPPER_MANAGER.step();
+        // STEPPER_MANAGER.step();
+        gpioStepperManager.step();
       }
       break;
 
