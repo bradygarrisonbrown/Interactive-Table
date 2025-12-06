@@ -6,10 +6,16 @@
 
 int NUM_ROUNDS = -1;
 
+bool E_STOP = false;
+
 StepperManager STEPPER_MANAGER;
 Adafruit_MCP23X17 mcp1;
 Adafruit_MCP23X17 mcp2;
 Adafruit_MCP23X17 mcp3;
+
+//Emergency Stop Pin
+constexpr int EMERGENCY_STOP = 3;
+
 
 void setup() {
   Serial.begin(9600);
@@ -40,9 +46,16 @@ void setup() {
     }
     STEPPER_MANAGER.initialize(&mcp1, &mcp2, &mcp3);
     initializeButtons();
+    attachInterrupt(digitalPinToInterrupt(EMERGENCY_STOP), ISR, RISING);
 
     Serial.println("Enter number of rounds:");
 #endif
+}
+
+  //Emergency stop interrupt function
+void ISR(){
+  //serial.println("EMERGENCY STOP!")
+  E_STOP = false;
 }
 
 void loop() {
@@ -73,6 +86,12 @@ void loop() {
     if (NUM_ROUNDS == -1) {
       // We don't want to do anything until the user says how many rounds
       return;
+    }
+
+    //If ISR in button_util sets emergency stop to false, enter infinite loop to stop running motors
+    if (!E_STOP){
+      Serial.println("EMERGENCY STOP!");
+      while(true){}
     }
 
     static full_state_t fs = {
