@@ -4,7 +4,6 @@
 #include "MCPStepper.h"
 #include <array>
 
-void initializeLED();
 
 class StepperManager {
   std::array<MCPStepper*, Constants::HEIGHT * Constants::WIDTH> steppers_;
@@ -15,7 +14,7 @@ public:
   void step();
 };
 
-void displayLCD(const char *msg, int score);
+
 
 xy_t randomMole();
 

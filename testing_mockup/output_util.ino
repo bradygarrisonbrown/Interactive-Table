@@ -1,17 +1,11 @@
 #include "output_util.h"
 
-#include "Arduino_LED_Matrix.h"
 #include <array>
 
 constexpr int LED_PIN = 8;
 constexpr int LED_COUNT = 256;
 constexpr int LED_BRIGHTNESS = 5;
 
-ArduinoLEDMatrix ledMatrix;
-
-void initializeLED() {
-  ledMatrix.begin();
-}
 
 // MCP 1
 constexpr StepperConfig STEP_0 = {4, 5, 6, 7};
@@ -94,20 +88,7 @@ void StepperManager::step() {
 #endif
 }
 
-/* ================ LED mock up ================ */
-// constexpr int LED_HEIGHT = 12;
-// constexpr int LED_WIDTH = 8;
-// std::array<std::array<byte, LED_HEIGHT>, LED_WIDTH> frame_{};
-// void StepperManager::setHeight(xy_t pos, long height) {
-//   if (height == 0) {
-//     frame_[pos.y][pos.x] = 0;
-//   } else {
-//     frame_[pos.y][pos.x] = 1;
-//   }
-//   ledMatrix.renderBitmap(frame_.data(), LED_HEIGHT, LED_WIDTH);
-// }
 
-void displayLCD(const char *msg, int score) {}
 
 #ifndef TESTING
 xy_t randomMole() {

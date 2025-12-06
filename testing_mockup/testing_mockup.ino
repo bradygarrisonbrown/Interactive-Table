@@ -1,6 +1,7 @@
 #include "shared.h"
 #include "output_util.h"
 #include "button_util.h"
+#include "LED_util.h"
 
 #include <Adafruit_MCP23X17.h>
 
@@ -45,6 +46,8 @@ void setup() {
       Serial.println("Error starting mcp3");
     }
     STEPPER_MANAGER.initialize(&mcp1, &mcp2, &mcp3);
+
+
     initializeButtons();
     attachInterrupt(digitalPinToInterrupt(EMERGENCY_STOP), ISR, RISING);
 
@@ -85,11 +88,13 @@ void loop() {
 
     if (NUM_ROUNDS == -1) {
       // We don't want to do anything until the user says how many rounds
+      fillLEDs(COLOR_BLUE);
       return;
     }
 
     //If ISR in button_util sets emergency stop to false, enter infinite loop to stop running motors
     if (!E_STOP){
+      fillLEDs(COLOR_RED);
       Serial.println("EMERGENCY STOP!");
       while(true){}
     }
@@ -146,6 +151,7 @@ full_state_t updateFSM(full_state_t currState,
         ret.moleStartMs = 0;
         ret.moleXy = {-1, -1};
         ret.fsmState = FsmState::s_CHOOSE_MOLE;
+        fillLEDs(COLOR_CYAN);
       }
       break;
 
@@ -154,7 +160,7 @@ full_state_t updateFSM(full_state_t currState,
     // ------------------------------------
     case FsmState::s_CHOOSE_MOLE:
       if (currentRound > totalRounds) {
-        displayLCD("Game Over!", ret.score);
+        //displayLCD("Game Over!", ret.score);
         Serial.println("Game over!");
         Serial.print("Score: ");
         Serial.println(score);
@@ -167,6 +173,8 @@ full_state_t updateFSM(full_state_t currState,
 
       // Set the mole's target height
       STEPPER_MANAGER.setHeight(ret.moleXy, Constants::MOLE_RISE_HEIGHT);
+
+      setGridColor(moleXy.x, moleXy.y, COLOR_MAGENTA);
 
       ret.fsmState = FsmState::s_RAISE_MOLE;
       break;
@@ -221,6 +229,7 @@ full_state_t updateFSM(full_state_t currState,
     case FsmState::s_MISS_HIT:
     case FsmState::s_TIME_EXPIRED:
       STEPPER_MANAGER.setHeight(moleXy, 0);
+      setGridColor(moleXy.x, moleXy.y, COLOR_YELLOW);
       ret.fsmState = FsmState::s_CLEAR_MOLE;
       break;
 
@@ -232,6 +241,7 @@ full_state_t updateFSM(full_state_t currState,
       if (moleDistanceToGo == 0) {
         ret.currentRound = currentRound + 1;
         ret.fsmState = FsmState::s_CHOOSE_MOLE;
+        fillLEDs(COLOR_CYAN);
       } else {
         STEPPER_MANAGER.step();
       }
