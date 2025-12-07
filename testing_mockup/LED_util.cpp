@@ -6,16 +6,41 @@
 #endif
 
 // NeoPixel setup
-#define LED_PIN     6
-#define LED_COUNT   256
+#define LED_PIN     13
+#define GRID_COUNT   256
+#define STRIP_COUNT   28
 #define BRIGHTNESS  5
 
-Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-// --- LED Section Definitions ---
-#define NUM_SECTIONS 9
-#define LEDS_PER_BASE_SECTION (LED_COUNT / NUM_SECTIONS) // 256 / 9 = 28
-#define LEDS_IN_LAST_SECTION (LED_COUNT - (LEDS_PER_BASE_SECTION * (NUM_SECTIONS - 1))) // 32 LEDs
+Adafruit_NeoPixel strip(STRIP_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+//Adafruit_NeoPixel strip(GRID_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+
+//LED Strip DEfinitions
+
+const uint8_t group_1_1[] = {1,7,8};
+const uint8_t group_1_2[] = {2,6};
+const uint8_t group_1_3[] = {3,4,5};
+
+const uint8_t group_2_1[] = {9,17,18};
+const uint8_t group_2_2[] = {10,11,16};
+const uint8_t group_2_3[] = {12,13,14,15};
+
+const uint8_t group_3_1[] = {19,20,27};
+const uint8_t group_3_2[] = {21,25,26};
+const uint8_t group_3_3[] = {22,23,24};
+
+struct LEDGroup {
+  const uint8_t* indices;
+  uint8_t count;
+};
+
+LEDGroup ledMap[3][3] = {
+  { {group_1_1, sizeof(group_1_1)}, {group_1_2, sizeof(group_1_2)}, {group_1_3, sizeof(group_1_3)} },
+  { {group_2_1, sizeof(group_2_1)}, {group_2_2, sizeof(group_2_2)}, {group_2_3, sizeof(group_2_3)} },
+  { {group_3_1, sizeof(group_3_1)}, {group_3_2, sizeof(group_3_2)}, {group_3_3, sizeof(group_3_3)} }
+};
+
 
 // --- LED Matrix and Section Definitions ---
 #define MATRIX_SIZE 16         // 16x16 grid = 256 pixels
@@ -24,19 +49,6 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 // Base dimensions for the 3x3 grid sections (5x5, 5x6, 6x5, 6x6)
 const int BASE_ROWS = MATRIX_SIZE / NUM_SECTIONS_PER_SIDE; // 16 / 3 = 5
 const int LAST_ROWS = MATRIX_SIZE - (BASE_ROWS * 2);       // 16 - 10 = 6 
-
-// Array defining the STARTING index of each section
-const int sectionStartIndices[NUM_SECTIONS] = {
-    0,                                      // Section 1 (Start 0)
-    LEDS_PER_BASE_SECTION * 1,              // Section 2 (Start 28)
-    LEDS_PER_BASE_SECTION * 2,              // Section 3 (Start 56)
-    LEDS_PER_BASE_SECTION * 3,              // Section 4 (Start 84)
-    LEDS_PER_BASE_SECTION * 4,              // Section 5 (Start 112)
-    LEDS_PER_BASE_SECTION * 5,              // Section 6 (Start 140)
-    LEDS_PER_BASE_SECTION * 6,              // Section 7 (Start 168)
-    LEDS_PER_BASE_SECTION * 7,              // Section 8 (Start 196)
-    LEDS_PER_BASE_SECTION * 8               // Section 9 (Start 224)
-};
 
 
 // Helper function to convert the NamedColor enum to a 32-bit color value
@@ -78,30 +90,15 @@ void initializeLED() {
 // Sets a specific section of the LED strip to a single color using the enum
 // sectionNumber: 1 to 9
 // color: A value from the NamedColors enum
-void setSectionColor(int sectionNumber, NamedColors color) {
-    if (sectionNumber < 1 || sectionNumber > NUM_SECTIONS) return;
+void setStripColor(int x, int y, NamedColors color) {
+    if (x < 1 || x > 3 || y < 1 || y > 3) return;  // safety
 
-    // Convert section number (1-9) to array index (0-8)
-    int index = sectionNumber - 1; 
+    LEDGroup group = ledMap[x - 1][y - 1];
 
-    int startIndex = sectionStartIndices[index];
-    int sectionLength;
-
-    // Determine the length for the current section
-    if (index == NUM_SECTIONS - 1) { 
-        sectionLength = LEDS_IN_LAST_SECTION;
-    } else {
-        sectionLength = LEDS_PER_BASE_SECTION;
-    }
-    
-    int endIndex = startIndex + sectionLength;
-
-    // Get the 32-bit color value using the new helper function
     uint32_t packedColor = getColorValue(color);
-
-    // Loop only through the pixels in the target section
-    for (int i = startIndex; i < endIndex; i++) {
-        strip.setPixelColor(i, packedColor);
+    for (uint8_t i = 0; i < group.count; i++) {
+        uint8_t ledIndex = group.indices[i];
+        strip.setPixelColor(ledIndex, packedColor);
     }
 
     // Note: strip.show() is called to update the strip
@@ -176,7 +173,8 @@ void fillLEDs(NamedColors color){
 
     uint32_t packedColor = getColorValue(color);
     strip.clear();
-    for (int i = 0; i < LED_COUNT; i++) {
+    //for (int i = 0; i < LED_COUNT; i++) {
+    for (int i = 1; i < STRIP_COUNT; i++) {
       strip.setPixelColor(i, packedColor);
     }
     strip.show();  // Only call once, after filling all pixels

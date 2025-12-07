@@ -19,7 +19,7 @@ enum NamedColors {
 
 void initializeLED();
 
-void setSectionColor(int sectionNumber, NamedColors color);
+void setStripColor(int x, int y, NamedColors color);
 
 void setGridColor(int sectionRow, int sectionCol, NamedColors color);
 

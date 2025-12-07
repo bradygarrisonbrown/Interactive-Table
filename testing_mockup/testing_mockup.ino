@@ -7,7 +7,7 @@
 
 int NUM_ROUNDS = -1;
 
-bool E_STOP = false;
+bool E_STOP = true;
 
 StepperManager STEPPER_MANAGER;
 Adafruit_MCP23X17 mcp1;
@@ -16,6 +16,9 @@ Adafruit_MCP23X17 mcp3;
 
 //Emergency Stop Pin
 constexpr int EMERGENCY_STOP = 3;
+
+//PWM Pin
+constexpr int PWM_PIN = 2;
 
 
 void setup() {
@@ -31,6 +34,9 @@ void setup() {
     Serial.println("Testing NOT enabled");
 
     initializeLED();
+
+    //PWM LED
+    analogWrite(PWM_PIN, 0);
 
     // Help I2C keep up (I got this from asking LLM, says it should be safe)
     Wire.setClock(400000);
@@ -138,6 +144,15 @@ full_state_t updateFSM(full_state_t currState,
 
   full_state_t ret = currState;
 
+  //Update PWM pin LED based on score
+  if (score >= 255){
+    analogWrite(PWM_PIN, 255);
+  } else if (score <= 0){
+    analogWrite(PWM_PIN, 0);
+  } else{
+    analogWrite(PWM_PIN, score);
+  }
+
   switch (fsm_state) {
     // ------------------------------------
     // INIT → CHOOSE_MOLE
@@ -210,13 +225,16 @@ full_state_t updateFSM(full_state_t currState,
         if (anyPress && correct) {
           ret.score = score + 1;
           ret.fsmState = FsmState::s_HIT_MOLE;
+          setGridColor(moleXy.x, moleXy.y, COLOR_GREEN);
           Serial.println("HIT");
         } else if (anyPress && !correct) {
           ret.score = score - 1;
           ret.fsmState = FsmState::s_MISS_HIT;
+          setGridColor(moleXy.x, moleXy.y, COLOR_RED);
           Serial.println("MISS");
         } else if (clock - moleStartMs > moleDurationMs) {
           ret.fsmState = FsmState::s_TIME_EXPIRED;
+          setGridColor(moleXy.x, moleXy.y, COLOR_YELLOW);
           Serial.println("EXPIRED");
         }
         break;
@@ -229,7 +247,6 @@ full_state_t updateFSM(full_state_t currState,
     case FsmState::s_MISS_HIT:
     case FsmState::s_TIME_EXPIRED:
       STEPPER_MANAGER.setHeight(moleXy, 0);
-      setGridColor(moleXy.x, moleXy.y, COLOR_YELLOW);
       ret.fsmState = FsmState::s_CLEAR_MOLE;
       break;
 
@@ -248,6 +265,7 @@ full_state_t updateFSM(full_state_t currState,
       break;
 
     case FsmState::s_GAME_OVER:
+      fillLEDs(COLOR_BLACK);
       break;
 
     default:
