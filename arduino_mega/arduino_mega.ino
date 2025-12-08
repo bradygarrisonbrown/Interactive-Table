@@ -1,5 +1,6 @@
 #include "gpio_stepper_manager.h"
 #include "fsm_util.h"
+#include "button_util.h"
 
 GpioStepperManager gpioStepperManager = GpioStepperManager::build();
 
@@ -13,10 +14,16 @@ void setup() {
 #else
   gpioStepperManager.initialize();
   gpioStepperManager.printCalibrationWelcome();
+
+  initializeButtons();
 #endif
 }
 
+#ifdef NEED_CALIBRATION
 bool inCalibration = true;
+#else
+bool inCalibration = false;
+#endif
 
 void loop() {
   if (inCalibration) {
@@ -27,6 +34,19 @@ void loop() {
     }
     return;
   }
+
+  const auto buttons = readButtons();
+  // for (int y = 0; y < Constants::HEIGHT; ++y) {
+  //   for (int x = 0; x < Constants::WIDTH; ++x) {
+  //     if (buttons.buttons[y][x]) {
+  //       Serial.print("{x: ");
+  //       Serial.print(x);
+  //       Serial.print(", y: ");
+  //       Serial.print(y);
+  //       Serial.println("}");
+  //     }
+  //   }
+  // }
 }
 
 full_state_t updateFSM(full_state_t currState,

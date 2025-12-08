@@ -4,6 +4,8 @@
 // UNCOMMENT to run tests!
 // #define TESTING
 
+// #define NEED_CALIBRATION
+
 // Dimensions of our grid
 namespace Constants
 {
