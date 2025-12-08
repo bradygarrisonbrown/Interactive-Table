@@ -14,6 +14,11 @@ namespace Constants
     inline constexpr long DEFAULT_MOLE_DURATION = 2000;
 }
 
+// Need a struct because you can't return arrays in old C++ (?)
+struct ButtonGrid {
+  bool buttons[Constants::HEIGHT][Constants::WIDTH];
+};
+
 typedef struct {
     int x;
     int y;
@@ -55,10 +60,10 @@ inline bool operator==(const full_state_t &lhs, const full_state_t &rhs) {
     lhs.fsmState == rhs.fsmState;
 }
 
-// full_state_t updateFSM(full_state_t currState,
-//                        int numRounds,
-//                        ButtonGrid buttons,
-//                        long moleDistanceToGo,
-//                        unsigned long clock);
+full_state_t updateFSM(full_state_t currState,
+                       int numRounds,
+                       ButtonGrid buttons,
+                       long moleDistanceToGo,
+                       unsigned long clock);
 
 #endif
