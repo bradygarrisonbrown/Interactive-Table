@@ -1,15 +1,17 @@
 #include "button_util.h"
 
 //Button Pins
+// This is VERY HW dependent and may change if we rewire.
+// Watch out!!
 constexpr int BUTTON_1 = 54;
 constexpr int BUTTON_2 = 55;
-constexpr int BUTTON_3 = 57;
-constexpr int BUTTON_4 = 58;
-constexpr int BUTTON_5 = 60;
-constexpr int BUTTON_6 = 61;
-constexpr int BUTTON_7 = 62;
-constexpr int BUTTON_8 = 63;
-constexpr int BUTTON_9 = 65;
+constexpr int BUTTON_3 = 56;
+constexpr int BUTTON_4 = 57;
+constexpr int BUTTON_5 = 58;
+constexpr int BUTTON_6 = 59;
+constexpr int BUTTON_7 = 60;
+constexpr int BUTTON_8 = 61;
+constexpr int BUTTON_9 = 62;
 
 // Global variables to track button state for reliable press detection
 static byte last1   = LOW;

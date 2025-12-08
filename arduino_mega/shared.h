@@ -4,7 +4,8 @@
 // UNCOMMENT to run tests!
 // #define TESTING
 
-// #define NEED_CALIBRATION
+// UNCOMMENT when testing, no calibration
+#define NEED_CALIBRATION
 
 // Dimensions of our grid
 namespace Constants
@@ -12,8 +13,8 @@ namespace Constants
     inline constexpr int WIDTH = 3;
     inline constexpr int HEIGHT = 3;
     // TODO: find correct value
-    inline constexpr long MOLE_RISE_HEIGHT = 2000;
-    inline constexpr long DEFAULT_MOLE_DURATION = 2000;
+    inline constexpr long MOLE_RISE_HEIGHT = 4096 * 3;
+    inline constexpr long DEFAULT_MOLE_DURATION = 3000;
 }
 
 // Need a struct because you can't return arrays in old C++ (?)

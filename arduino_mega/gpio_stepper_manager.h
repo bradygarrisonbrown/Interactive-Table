@@ -91,14 +91,14 @@ public:
         switch (command) {
           case 'u':
             Serial.print(F("Calibrating stepper: "));
-            Serial.println(stepperIndex);
+            Serial.println(stepperIndex + 1);
             Serial.println(F("Nudging CW..."));
             stepper->move(SMALL_STEP); 
             break;
 
           case 'd':
             Serial.print(F("Calibrating stepper: "));
-            Serial.println(stepperIndex);
+            Serial.println(stepperIndex + 1);
             Serial.println(F("Nudging CCW..."));
             stepper->move(-SMALL_STEP); 
             break;
@@ -110,7 +110,7 @@ public:
             Serial.println(stepper->currentPosition());
             stepperIndex++;
             Serial.print(F("Moving to stepper: "));
-            Serial.println(stepperIndex);
+            Serial.println(stepperIndex + 1);
             break;
             
           // Ignore newlines and carriage returns

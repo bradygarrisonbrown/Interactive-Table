@@ -1,6 +1,7 @@
 #include "gpio_stepper_manager.h"
 #include "fsm_util.h"
 #include "button_util.h"
+#include "led_util.h"
 
 GpioStepperManager gpioStepperManager = GpioStepperManager::build();
 
@@ -13,12 +14,12 @@ void setup() {
     ;
 #else
   gpioStepperManager.initialize();
+  initializeButtons();
+  initializeLED();
 
 #ifdef NEED_CALIBRATION
   gpioStepperManager.printCalibrationWelcome();
 #endif
-
-  initializeButtons();
 #endif
 }
 
@@ -33,6 +34,36 @@ bool welcomeMessagePrinted = false;
 int NUM_ROUNDS = -1;
 
 void loop() {
+
+  const auto buttons = readButtons();
+  // for (int y = 0; y < Constants::HEIGHT; ++y) {
+  //   for (int x = 0; x < Constants::WIDTH; ++x) {
+  //     if (buttons.buttons[y][x]) {
+  //       Serial.print("{x: ");
+  //       Serial.print(x);
+  //       Serial.print(" y: ");
+  //       Serial.print(y);
+  //       Serial.println("}");
+  //     }
+  //   }
+  // }
+  // for(int i = 1; i<=3; i++){
+  //   for(int j = 1; j<=3; j++){
+  //     setStripColor(i, j, NamedColors::COLOR_MAGENTA);
+  //     setGridColor(i-1, j-1, NamedColors::COLOR_MAGENTA);
+  //     // delay(500);
+  //   }
+  // }
+
+  // for(int i = 1; i<=3; i++){
+  //   for(int j = 1; j<=3; j++){
+  //     setStripColor(i, j, NamedColors::COLOR_BLACK);
+  //     setGridColor(i-1, j-1, NamedColors::COLOR_BLACK);
+  //   }
+  // }
+  // return;
+  
+
   if (inCalibration) {
     const auto calibrationDone = gpioStepperManager.calibrationStep();
     if (calibrationDone) {
@@ -65,8 +96,6 @@ void loop() {
     return;
   }
 
-  const auto buttons = readButtons();
-
   static full_state_t fs = {
       /* moleStartMs=*/ 0,
       /* moleDurationMs=*/ 0,
@@ -77,15 +106,16 @@ void loop() {
       /* fsmState=*/ FsmState::s_INIT,
   };
 
+  // const auto buttons = readButtons();
+
   long dist = gpioStepperManager.distanceToGo(fs.moleXy);
+  // long dist = 0;
 
   fs = updateFSM(fs,
               NUM_ROUNDS,
               buttons,
               dist,
               millis());
-
-  delay(10);
 }
 
 full_state_t updateFSM(full_state_t currState,
@@ -139,9 +169,9 @@ full_state_t updateFSM(full_state_t currState,
       gpioStepperManager.setHeight(ret.moleXy, Constants::MOLE_RISE_HEIGHT);
 
       ret.fsmState = FsmState::s_RAISE_MOLE;
-      Serial.print("Mole chosen: ");
-      ret.moleXy.print();
-      Serial.println();
+      // Serial.print("Mole chosen: ");
+      // ret.moleXy.print();
+      // Serial.println();
       break;
 
     // ------------------------------------
@@ -151,11 +181,11 @@ full_state_t updateFSM(full_state_t currState,
       if (moleDistanceToGo == 0) {
         ret.fsmState = FsmState::s_WAIT;
         ret.moleStartMs = clock;
-        Serial.print("Mole at:");
-        ret.moleXy.print();
-        Serial.println(" ready to hit");
+        // Serial.print("Mole at:");
+        // ret.moleXy.print();
+        // Serial.println(" ready to hit");
+        setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::RAISED);
       } else {
-        // STEPPER_MANAGER.step();
         gpioStepperManager.step();
       }
       break;
@@ -179,13 +209,16 @@ full_state_t updateFSM(full_state_t currState,
           ret.score = score + 1;
           ret.fsmState = FsmState::s_HIT_MOLE;
           Serial.println("HIT");
+          setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::HIT);
         } else if (anyPress && !correct) {
           ret.score = score - 1;
           ret.fsmState = FsmState::s_MISS_HIT;
           Serial.println("MISS");
+          setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::MISSED);
         } else if (clock - moleStartMs > moleDurationMs) {
           ret.fsmState = FsmState::s_TIME_EXPIRED;
           Serial.println("EXPIRED");
+          setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::EXPIRED);
         }
         break;
       }
@@ -208,12 +241,16 @@ full_state_t updateFSM(full_state_t currState,
       if (moleDistanceToGo == 0) {
         ret.currentRound = currentRound + 1;
         ret.fsmState = FsmState::s_CHOOSE_MOLE;
+        setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::CLEAR);
       } else {
         gpioStepperManager.step();
       }
       break;
 
     case FsmState::s_GAME_OVER:
+      delay(2000);
+      Serial.println("Starting new game!");
+      ret.fsmState = FsmState::s_INIT;
       break;
 
     default:
