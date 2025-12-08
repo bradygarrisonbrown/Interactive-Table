@@ -136,20 +136,24 @@ full_state_t updateFSM(full_state_t currState,
       ret.moleDurationMs = Constants::DEFAULT_MOLE_DURATION;
 
       // Set the mole's target height
-      // STEPPER_MANAGER.setHeight(ret.moleXy, Constants::MOLE_RISE_HEIGHT);
       gpioStepperManager.setHeight(ret.moleXy, Constants::MOLE_RISE_HEIGHT);
 
       ret.fsmState = FsmState::s_RAISE_MOLE;
+      Serial.print("Mole chosen: ");
+      ret.moleXy.print();
+      Serial.println();
       break;
 
     // ------------------------------------
     // RAISE_MOLE → WAIT
     // ------------------------------------
     case FsmState::s_RAISE_MOLE:
-      // CHECK USING PROVIDED distanceToGoForMole
       if (moleDistanceToGo == 0) {
         ret.fsmState = FsmState::s_WAIT;
         ret.moleStartMs = clock;
+        Serial.print("Mole at:");
+        ret.moleXy.print();
+        Serial.println(" ready to hit");
       } else {
         // STEPPER_MANAGER.step();
         gpioStepperManager.step();
@@ -192,7 +196,6 @@ full_state_t updateFSM(full_state_t currState,
     case FsmState::s_HIT_MOLE:
     case FsmState::s_MISS_HIT:
     case FsmState::s_TIME_EXPIRED:
-      // STEPPER_MANAGER.setHeight(moleXy, 0);
       gpioStepperManager.setHeight(moleXy, 0);
       ret.fsmState = FsmState::s_CLEAR_MOLE;
       break;
@@ -206,7 +209,6 @@ full_state_t updateFSM(full_state_t currState,
         ret.currentRound = currentRound + 1;
         ret.fsmState = FsmState::s_CHOOSE_MOLE;
       } else {
-        // STEPPER_MANAGER.step();
         gpioStepperManager.step();
       }
       break;
