@@ -6,8 +6,8 @@
 
 // Not idiomatic RAII but Arduino merges all .ino files together so this is OK
 class GpioStepperManager {
-  static constexpr float MAX_SPEED = 2000.0;
-  static constexpr float ACCELERATION = 200.0;
+  static constexpr float MAX_SPEED = 4000.0;
+  static constexpr float ACCELERATION = 600.0;
   static constexpr long SMALL_STEP = 4096.0 / 4;
 
 public:
