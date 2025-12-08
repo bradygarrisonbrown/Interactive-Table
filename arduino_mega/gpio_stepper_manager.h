@@ -8,7 +8,7 @@
 class GpioStepperManager {
   static constexpr float MAX_SPEED = 4000.0;
   static constexpr float ACCELERATION = 600.0;
-  static constexpr long SMALL_STEP = 4096.0 / 4;
+  static constexpr long SMALL_STEP = 4096.0;
 
 public:
   // Chose a static factory + private ctor to put all pin knowledge in gpio_stepper_manager.ino
