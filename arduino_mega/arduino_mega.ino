@@ -56,7 +56,7 @@ void loop() {
       Serial.read(); // expect this to be a \n
     } else {
       Serial.print("Starting with number of rounds: ");
-      Serial.println(NUM_ROUNDS);d
+      Serial.println(NUM_ROUNDS);
     }
   }
 
