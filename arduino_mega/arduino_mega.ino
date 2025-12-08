@@ -2,6 +2,7 @@
 #include "fsm_util.h"
 #include "button_util.h"
 #include "led_util.h"
+#include "wdt.h"
 
 GpioStepperManager gpioStepperManager = GpioStepperManager::build();
 
@@ -16,6 +17,7 @@ void setup() {
   gpioStepperManager.initialize();
   initializeButtons();
   initializeLED();
+  initWDT();
 
 #ifdef NEED_CALIBRATION
   gpioStepperManager.printCalibrationWelcome();
@@ -248,7 +250,7 @@ full_state_t updateFSM(full_state_t currState,
       break;
 
     case FsmState::s_GAME_OVER:
-      delay(2000);
+      delay(5000);
       Serial.println("Starting new game!");
       ret.fsmState = FsmState::s_INIT;
       break;
@@ -257,6 +259,8 @@ full_state_t updateFSM(full_state_t currState,
       Serial.println("Invalid state");
       break;
   }
+
+  petWDT();
 
   return ret;
 }
