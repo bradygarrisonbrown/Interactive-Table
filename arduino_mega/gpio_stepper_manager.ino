@@ -6,15 +6,15 @@ struct GpioStepperConfig {
   uint8_t p1, p2, p3, p4;
 };
 
-constexpr GpioStepperConfig GPIO_STEPPER_0_CONFIG = {22, 24, 26, 28};
-constexpr GpioStepperConfig GPIO_STEPPER_1_CONFIG = {30, 32, 34, 36};
-constexpr GpioStepperConfig GPIO_STEPPER_2_CONFIG = {8, 9, 10, 11};
-constexpr GpioStepperConfig GPIO_STEPPER_3_CONFIG = {12, 13, 14, 15};
-constexpr GpioStepperConfig GPIO_STEPPER_4_CONFIG = {16, 17, 18, 19};
-constexpr GpioStepperConfig GPIO_STEPPER_5_CONFIG = {20, 21, 22, 23};
-constexpr GpioStepperConfig GPIO_STEPPER_6_CONFIG = {24, 25, 26, 27};
-constexpr GpioStepperConfig GPIO_STEPPER_7_CONFIG = {28, 29, 30, 31};
-constexpr GpioStepperConfig GPIO_STEPPER_8_CONFIG = {32, 33, 34, 35};
+constexpr GpioStepperConfig GPIO_STEPPER_0_CONFIG = {2, 3, 4, 5};
+constexpr GpioStepperConfig GPIO_STEPPER_1_CONFIG = {6, 7, 8, 9};
+constexpr GpioStepperConfig GPIO_STEPPER_2_CONFIG = {22, 24, 26, 28};
+constexpr GpioStepperConfig GPIO_STEPPER_3_CONFIG = {23, 25, 27, 29};
+constexpr GpioStepperConfig GPIO_STEPPER_4_CONFIG = {30, 32, 34, 36};
+constexpr GpioStepperConfig GPIO_STEPPER_5_CONFIG = {31, 33, 35, 37};
+constexpr GpioStepperConfig GPIO_STEPPER_6_CONFIG = {38, 40, 42, 44};
+constexpr GpioStepperConfig GPIO_STEPPER_7_CONFIG = {39, 41, 43, 45};
+constexpr GpioStepperConfig GPIO_STEPPER_8_CONFIG = {46, 48, 50, 52};
 
 #define DEFINE_STEPPER(ID) \
     AccelStepper GPIO_STEPPER_##ID( \
