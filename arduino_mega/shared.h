@@ -4,7 +4,7 @@
 // UNCOMMENT to run tests!
 // #define TESTING
 
-#define NEED_CALIBRATION
+// #define NEED_CALIBRATION
 
 // Dimensions of our grid
 namespace Constants
@@ -12,7 +12,7 @@ namespace Constants
     inline constexpr int WIDTH = 3;
     inline constexpr int HEIGHT = 3;
     // TODO: find correct value
-    inline constexpr long MOLE_RISE_HEIGHT = 500;
+    inline constexpr long MOLE_RISE_HEIGHT = 2000;
     inline constexpr long DEFAULT_MOLE_DURATION = 2000;
 }
 
@@ -21,10 +21,18 @@ struct ButtonGrid {
   bool buttons[Constants::HEIGHT][Constants::WIDTH];
 };
 
-typedef struct {
+struct xy_t {
     int x;
     int y;
-} xy_t;
+
+    void print() {
+        Serial.print("{x: ");
+        Serial.print(x);
+        Serial.print(", y: ");
+        Serial.print(y);
+        Serial.print("}");
+    }
+};
 
 inline bool operator==(const xy_t &lhs, const xy_t &rhs) {
     return lhs.x == rhs.x && lhs.y == rhs.y;

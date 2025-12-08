@@ -13,7 +13,10 @@ void setup() {
     ;
 #else
   gpioStepperManager.initialize();
+
+#ifdef NEED_CALIBRATION
   gpioStepperManager.printCalibrationWelcome();
+#endif
 
   initializeButtons();
 #endif
@@ -25,6 +28,10 @@ bool inCalibration = true;
 bool inCalibration = false;
 #endif
 
+bool welcomeMessagePrinted = false;
+
+int NUM_ROUNDS = -1;
+
 void loop() {
   if (inCalibration) {
     const auto calibrationDone = gpioStepperManager.calibrationStep();
@@ -35,18 +42,50 @@ void loop() {
     return;
   }
 
+  if (!welcomeMessagePrinted) {
+    Serial.println("Enter a number of rounds:");
+    welcomeMessagePrinted = true;
+  }
+
+  if (Serial.available() > 0 && NUM_ROUNDS == -1) {
+    NUM_ROUNDS = Serial.parseInt();
+    if (NUM_ROUNDS <= 0) {
+      Serial.println("Please enter non-zero rounds.");
+      NUM_ROUNDS = -1;
+
+      Serial.read(); // expect this to be a \n
+    } else {
+      Serial.print("Starting with number of rounds: ");
+      Serial.println(NUM_ROUNDS);d
+    }
+  }
+
+  if (NUM_ROUNDS == -1) {
+    // We don't want to do anything until the user says how many rounds
+    return;
+  }
+
   const auto buttons = readButtons();
-  // for (int y = 0; y < Constants::HEIGHT; ++y) {
-  //   for (int x = 0; x < Constants::WIDTH; ++x) {
-  //     if (buttons.buttons[y][x]) {
-  //       Serial.print("{x: ");
-  //       Serial.print(x);
-  //       Serial.print(", y: ");
-  //       Serial.print(y);
-  //       Serial.println("}");
-  //     }
-  //   }
-  // }
+
+  static full_state_t fs = {
+      /* moleStartMs=*/ 0,
+      /* moleDurationMs=*/ 0,
+      /* moleXy=*/ {-1, -1},
+      /* currentRound=*/ 0,
+      /* totalRounds=*/ 0,
+      /* score=*/ 0,
+      /* fsmState=*/ FsmState::s_INIT,
+  };
+
+  long dist = gpioStepperManager.distanceToGo(fs.moleXy);
+
+  fs = updateFSM(fs,
+              NUM_ROUNDS,
+              buttons,
+              dist,
+              millis());
+
+  delay(10);
 }
 
 full_state_t updateFSM(full_state_t currState,

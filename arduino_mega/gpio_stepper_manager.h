@@ -33,7 +33,7 @@ public:
 
   long distanceToGo(xy_t pos) {
     if (pos.y < 0 || pos.y >= Constants::HEIGHT || pos.x < 0 || pos.x >= Constants::WIDTH) {
-      Serial.println("Passed bad pos to distanceTogo");
+      // Serial.println("Passed bad pos to distanceTogo");
       return 0;
     }
 
