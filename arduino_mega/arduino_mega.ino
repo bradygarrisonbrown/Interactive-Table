@@ -42,12 +42,18 @@ bool inCalibration = false;
 #endif
 
 bool welcomeMessagePrinted = false;
+bool emergencyStop = false;
 
 int NUM_ROUNDS = -1;
 
 void loop() {
   // Use this to prove that the WDT is working
   // delay(10000);
+
+  if (emergencyStop) {
+    Serial.println("EMERGENCY STOP!");
+    while (true);
+  }
 
   const auto buttons = readButtons();
   // for (int y = 0; y < Constants::HEIGHT; ++y) {

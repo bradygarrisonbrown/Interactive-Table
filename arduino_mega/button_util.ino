@@ -25,7 +25,7 @@ static byte last8  = LOW;
 static byte last9  = LOW;
 
 //Emergency Stop Pin
-constexpr int EMERGENCY_STOP = 69;
+constexpr int EMERGENCY_STOP = 19;
 
 /*
 BUTTON HANDLING CODE
@@ -33,8 +33,7 @@ BUTTON HANDLING CODE
 
 //Emergency stop interrupt function
 void emergencyStopISR(){
-  //serial.println("EMERGENCY STOP!")
-  while(true){ }
+  emergencyStop = true;
 }
 
 
@@ -51,7 +50,7 @@ void initializeButtons() {
   pinMode(BUTTON_8, INPUT_PULLUP);
   pinMode(BUTTON_9, INPUT_PULLUP);
 
-  attachInterrupt(digitalPinToInterrupt(EMERGENCY_STOP), emergencyStopISR, RISING);
+  attachInterrupt(digitalPinToInterrupt(EMERGENCY_STOP), emergencyStopISR, FALLING);
 }
 
 //Arrays to keep track of button/Last items

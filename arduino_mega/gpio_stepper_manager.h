@@ -37,6 +37,11 @@ public:
       return 0;
     }
 
+    // HACK: motor driver at (1, 1) failed, use this to work around that
+    if (pos.x == 1 && pos.y == 1) {
+      return 0;
+    }
+
     return steppers_[pos.y][pos.x]->distanceToGo();
   }
 
