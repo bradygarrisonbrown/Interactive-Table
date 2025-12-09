@@ -8,7 +8,7 @@
 // #define ENABLE_WDT
 
 // UNCOMMENT when testing, no calibration
-#define NEED_CALIBRATION
+// #define NEED_CALIBRATION
 
 // Dimensions of our grid
 namespace Constants

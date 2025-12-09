@@ -208,7 +208,15 @@ full_state_t updateFSM(full_state_t currState,
     // ------------------------------------
     // RAISE_MOLE → WAIT
     // ------------------------------------
-    case FsmState::s_RAISE_MOLE:
+    case FsmState::s_RAISE_MOLE: {
+      bool anyPress = false;
+      for (int y = 0; y < 3; y++)
+        for (int x = 0; x < 3; x++)
+          if (buttons.buttons[y][x]) {
+            anyPress = true;
+          }
+
+
       if (moleDistanceToGo == 0) {
         ret.fsmState = FsmState::s_WAIT;
         ret.moleStartMs = clock;
@@ -217,10 +225,15 @@ full_state_t updateFSM(full_state_t currState,
         // Serial.println(" ready to hit");
         setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::RAISED);
         setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::RAISED);
+      } else if (anyPress) {
+        setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::MISSED);
+        setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::MISSED);
+        gpioStepperManager.setHeight(ret.moleXy, 0);
+        ret.fsmState = FsmState::s_CLEAR_MOLE;
       } else {
         gpioStepperManager.step();
       }
-      break;
+    } break;
 
     // ------------------------------------
     // WAIT → HIT, MISS, TIME_EXPIRED
