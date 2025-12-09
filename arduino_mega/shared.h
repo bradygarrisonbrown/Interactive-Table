@@ -4,6 +4,9 @@
 // UNCOMMENT to run tests!
 // #define TESTING
 
+// COMMENT OUT for testing!!
+// #define ENABLE_WDT
+
 // UNCOMMENT when testing, no calibration
 #define NEED_CALIBRATION
 

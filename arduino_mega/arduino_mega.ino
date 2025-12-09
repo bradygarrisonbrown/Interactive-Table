@@ -17,7 +17,17 @@ void setup() {
   gpioStepperManager.initialize();
   initializeButtons();
   initializeLED();
+
+#ifdef ENABLE_WDT
   initWDT();
+#endif
+
+  for(int i = 1; i<=3; i++) {
+    for(int j = 1; j<=3; j++) {
+      setStripColor(i, j, NamedColors::COLOR_BLACK);
+      setGridColor(i-1, j-1, NamedColors::COLOR_BLACK);
+    }
+  }
 
 #ifdef NEED_CALIBRATION
   gpioStepperManager.printCalibrationWelcome();
@@ -36,6 +46,8 @@ bool welcomeMessagePrinted = false;
 int NUM_ROUNDS = -1;
 
 void loop() {
+  // Use this to prove that the WDT is working
+  // delay(10000);
 
   const auto buttons = readButtons();
   // for (int y = 0; y < Constants::HEIGHT; ++y) {
@@ -53,7 +65,7 @@ void loop() {
   //   for(int j = 1; j<=3; j++){
   //     setStripColor(i, j, NamedColors::COLOR_MAGENTA);
   //     setGridColor(i-1, j-1, NamedColors::COLOR_MAGENTA);
-  //     // delay(500);
+  //     delay(500);
   //   }
   // }
 
@@ -62,6 +74,7 @@ void loop() {
   //     setStripColor(i, j, NamedColors::COLOR_BLACK);
   //     setGridColor(i-1, j-1, NamedColors::COLOR_BLACK);
   //   }
+  //   delay(500);
   // }
   // return;
   
@@ -250,9 +263,9 @@ full_state_t updateFSM(full_state_t currState,
       break;
 
     case FsmState::s_GAME_OVER:
-      delay(5000);
-      Serial.println("Starting new game!");
-      ret.fsmState = FsmState::s_INIT;
+      // delay(5000);
+      // Serial.println("Starting new game!");
+      // ret.fsmState = FsmState::s_INIT;
       break;
 
     default:
@@ -260,7 +273,10 @@ full_state_t updateFSM(full_state_t currState,
       break;
   }
 
+
+#ifdef ENABLE_WDT
   petWDT();
+#endif
 
   return ret;
 }

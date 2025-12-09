@@ -11,9 +11,4 @@ static inline void petWDT() {
   wdt_reset();
 }
 
-void wdtISR() {
-  Serial.println("WDT Triggered");
-  while(true);
-}
-
 #endif

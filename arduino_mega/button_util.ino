@@ -37,6 +37,7 @@ void emergencyStopISR(){
   while(true){ }
 }
 
+
 //Initialize button + emergency stop pin settings
 void initializeButtons() {
   //Button Setup

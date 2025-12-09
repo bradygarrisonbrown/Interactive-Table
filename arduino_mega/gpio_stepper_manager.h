@@ -109,8 +109,10 @@ public:
             Serial.print(F("Current Position is now: "));
             Serial.println(stepper->currentPosition());
             stepperIndex++;
-            Serial.print(F("Moving to stepper: "));
-            Serial.println(stepperIndex + 1);
+            if (stepperIndex < 9) {
+              Serial.print(F("Moving to stepper: "));
+              Serial.println(stepperIndex + 1);
+            }
             break;
             
           // Ignore newlines and carriage returns
