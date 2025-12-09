@@ -123,6 +123,7 @@ void loop() {
 
   if (NUM_ROUNDS == -1) {
     // We don't want to do anything until the user says how many rounds
+    rainbowFade(1, 1);
     return;
   }
 

@@ -40,6 +40,8 @@ void fillGrid(NamedColors color);
 
 void displayLCD(const char *msg, int score);
 
+void rainbowFade(int wait, int rainbowLoops);
+
 #endif
 
 
