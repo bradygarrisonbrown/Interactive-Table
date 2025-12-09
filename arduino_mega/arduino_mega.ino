@@ -29,6 +29,8 @@ void setup() {
     }
   }
 
+  randomSeed(analogRead(A0));
+
 #ifdef NEED_CALIBRATION
   gpioStepperManager.printCalibrationWelcome();
 #endif
