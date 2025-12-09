@@ -17,17 +17,22 @@ void setup() {
   gpioStepperManager.initialize();
   initializeButtons();
   initializeLED();
-
-#ifdef ENABLE_WDT
-  initWDT();
-#endif
-
+    /**
   for(int i = 1; i<=3; i++) {
     for(int j = 1; j<=3; j++) {
       setStripColor(i, j, NamedColors::COLOR_BLACK);
       setGridColor(i-1, j-1, NamedColors::COLOR_BLACK);
     }
   }
+  */
+  fillStrip(COLOR_BLACK);
+  fillGrid(COLOR_BLACK);
+
+#ifdef ENABLE_WDT
+  initWDT();
+#endif
+
+
 
   randomSeed(analogRead(A0));
 
@@ -185,6 +190,7 @@ full_state_t updateFSM(full_state_t currState,
         break;
       }
 
+      setPWM(0, totalRounds, currentRound);
       ret.moleXy = randomMole();
       ret.moleDurationMs = Constants::DEFAULT_MOLE_DURATION;
 
@@ -208,6 +214,7 @@ full_state_t updateFSM(full_state_t currState,
         // ret.moleXy.print();
         // Serial.println(" ready to hit");
         setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::RAISED);
+        setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::RAISED);
       } else {
         gpioStepperManager.step();
       }
@@ -233,15 +240,18 @@ full_state_t updateFSM(full_state_t currState,
           ret.fsmState = FsmState::s_HIT_MOLE;
           Serial.println("HIT");
           setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::HIT);
+          setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::HIT);
         } else if (anyPress && !correct) {
           ret.score = score - 1;
           ret.fsmState = FsmState::s_MISS_HIT;
           Serial.println("MISS");
           setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::MISSED);
+          setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::MISSED);
         } else if (clock - moleStartMs > moleDurationMs) {
           ret.fsmState = FsmState::s_TIME_EXPIRED;
           Serial.println("EXPIRED");
           setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::EXPIRED);
+          setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::EXPIRED);
         }
         break;
       }
@@ -265,6 +275,7 @@ full_state_t updateFSM(full_state_t currState,
         ret.currentRound = currentRound + 1;
         ret.fsmState = FsmState::s_CHOOSE_MOLE;
         setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::CLEAR);
+        setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::CLEAR);
       } else {
         gpioStepperManager.step();
       }

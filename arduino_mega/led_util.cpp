@@ -12,9 +12,17 @@
 #define STRIP_COUNT   28
 #define BRIGHTNESS  50
 
-
 Adafruit_NeoPixel strip(STRIP_COUNT, STRIP_PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel grid(GRID_COUNT, GRID_PIN, NEO_GRB + NEO_KHZ800);
+
+#define PWM_PIN    10
+
+void setPWM(int min, int max, int val){
+// Update PWM pin LED based on score
+  int new_val = map(val, min, max, 0, 255); 
+  analogWrite(PWM_PIN, new_val);
+}
+
 
 
 //LED Strip DEfinitions
@@ -113,6 +121,9 @@ void initializeLED() {
     grid.begin();
     grid.show(); // Turn off all pixels initially
     grid.setBrightness(BRIGHTNESS);
+
+    pinMode(PWM_PIN, OUTPUT);
+    analogWrite(PWM_PIN, 0);
 }
 
 // Sets a specific section of the LED strip to a single color using the enum

@@ -28,6 +28,8 @@ namespace MoleColors {
 
 void initializeLED();
 
+void setPWM(int min, int max, int val);
+
 void setStripColor(int x, int y, NamedColors color);
 
 void setGridColor(int sectionRow, int sectionCol, NamedColors color);
