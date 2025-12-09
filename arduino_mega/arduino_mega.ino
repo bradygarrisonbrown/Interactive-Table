@@ -59,6 +59,8 @@ void loop() {
 
   if (emergencyStop) {
     Serial.println("EMERGENCY STOP!");
+    fillGrid(COLOR_RED);
+    fillStrip(COLOR_RED);
     while (true);
   }
 

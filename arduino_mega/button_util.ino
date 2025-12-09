@@ -50,7 +50,7 @@ void initializeButtons() {
   pinMode(BUTTON_8, INPUT_PULLUP);
   pinMode(BUTTON_9, INPUT_PULLUP);
 
-  attachInterrupt(digitalPinToInterrupt(EMERGENCY_STOP), emergencyStopISR, FALLING);
+  attachInterrupt(digitalPinToInterrupt(EMERGENCY_STOP), emergencyStopISR, RISING);
 }
 
 //Arrays to keep track of button/Last items

@@ -2,7 +2,7 @@
 #define SHARED_H
 
 // UNCOMMENT to run tests!
-#define TESTING
+// #define TESTING
 
 // COMMENT OUT for testing!!
 // #define ENABLE_WDT
