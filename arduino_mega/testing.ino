@@ -11,6 +11,12 @@ typedef struct
     long clock;
 } state_inputs_t;
 
+/**
+ * Pretty-print FSM state
+ *
+ * Inputs: See function signature.
+ * Outputs: String representation of FSM state.
+ */
 char* s2str(FsmState s) {
   switch(s) {
     case FsmState::s_INIT:
@@ -36,6 +42,12 @@ char* s2str(FsmState s) {
   }
 }
 
+/**
+ * Helper method to convert first pressed button to coordinates.
+ *
+ * Inputs: See function signature.
+ * Outputs: XY pos, (-1, -1) if nothing is pressed.
+ */
 xy_t gridToXY(const ButtonGrid &grid) {
     for (int y = 0; y < Constants::HEIGHT; ++y) {
         for (int x = 0; x < Constants::WIDTH; ++x) {
@@ -54,6 +66,13 @@ const int numTests = 13;
 // This forces the compiler to recognize the function uses the struct defined above.
 bool testTransition(full_state_t start, full_state_t end, state_inputs_t inputs, bool verbos);
 
+/**
+ * Test a single transition.
+ *
+ * Inputs: See function signature.
+ * Outputs: True if test passed, false otherwise.
+ * Side Effects: Print results.
+ */
 bool testTransition(full_state_t start, full_state_t end, state_inputs_t inputs, bool verbos)
 {
     const auto actual = updateFSM(start, inputs.numRounds, inputs.buttons, inputs.distanceToGo, inputs.clock);
@@ -103,6 +122,12 @@ bool testTransition(full_state_t start, full_state_t end, state_inputs_t inputs,
     }
 }
 
+/**
+ * Run all tests.
+ *
+ * Inputs: See function signature.
+ * Outputs: True if all tests passed, false otherwise.
+ */
 bool testAll() {
 #ifndef TESTING
     Serial.println("Testing not compiled. Need to #define TESTING");

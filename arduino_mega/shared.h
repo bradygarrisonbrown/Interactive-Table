@@ -5,7 +5,7 @@
 // #define TESTING
 
 // COMMENT OUT for testing!!
-// #define ENABLE_WDT
+#define ENABLE_WDT
 
 // UNCOMMENT when testing, no calibration
 // #define NEED_CALIBRATION
@@ -74,6 +74,7 @@ inline bool operator==(const full_state_t &lhs, const full_state_t &rhs) {
     lhs.fsmState == rhs.fsmState;
 }
 
+// See arduino_mega.ino for code comment.
 full_state_t updateFSM(full_state_t currState,
                        int numRounds,
                        ButtonGrid buttons,

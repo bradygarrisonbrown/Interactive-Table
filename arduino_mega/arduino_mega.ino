@@ -6,6 +6,12 @@
 
 GpioStepperManager gpioStepperManager = GpioStepperManager::build();
 
+/**
+ * Set up Serial, hardware, and run tests.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: Initialize hardware
+ */
 void setup() {
   Serial.begin(9600);
 
@@ -53,6 +59,12 @@ bool emergencyStop = false;
 
 int NUM_ROUNDS = -1;
 
+/**
+ * Run main FSM loop.
+ * Inputs: None
+ * Outputs: Motor heights, LEDs, Serial
+ * Side Effects: Modify hardware fields
+ */
 void loop() {
   // Use this to prove that the WDT is working
   // delay(10000);
@@ -65,6 +77,7 @@ void loop() {
   }
 
   const auto buttons = readButtons();
+  // Buttons test
   // for (int y = 0; y < Constants::HEIGHT; ++y) {
   //   for (int x = 0; x < Constants::WIDTH; ++x) {
   //     if (buttons.buttons[y][x]) {
@@ -76,6 +89,9 @@ void loop() {
   //     }
   //   }
   // }
+  // return;
+
+  // LED test
   // for(int i = 1; i<=3; i++){
   //   for(int j = 1; j<=3; j++){
   //     setStripColor(i, j, NamedColors::COLOR_MAGENTA);
@@ -83,7 +99,6 @@ void loop() {
   //     delay(500);
   //   }
   // }
-
   // for(int i = 1; i<=3; i++){
   //   for(int j = 1; j<=3; j++){
   //     setStripColor(i, j, NamedColors::COLOR_BLACK);
@@ -149,6 +164,12 @@ void loop() {
               millis());
 }
 
+/**
+ * Run one iteration of the time-triggered FSM.
+ * Inputs: See function signature
+ * Outputs: The next state
+ * Side Effects: May affect motor height, LED array, or Serial outpu, or Serial output.
+ */
 full_state_t updateFSM(full_state_t currState,
                        int numRounds,
                        ButtonGrid buttons,
@@ -170,7 +191,7 @@ full_state_t updateFSM(full_state_t currState,
     // INIT → CHOOSE_MOLE
     // ------------------------------------
     case FsmState::s_INIT:
-      if (numRounds != 0) {
+      if (numRounds != 0) { // t 1-2
         ret.currentRound = 1;
         ret.totalRounds = numRounds;
         ret.score = 0;
@@ -179,13 +200,13 @@ full_state_t updateFSM(full_state_t currState,
         ret.moleXy = {-1, -1};
         ret.fsmState = FsmState::s_CHOOSE_MOLE;
       }
-      break;
+      break; // s_INIT
 
     // ------------------------------------
     // CHOOSE_MOLE → RAISE_MOLE or GAME_OVER
     // ------------------------------------
     case FsmState::s_CHOOSE_MOLE:
-      if (currentRound > totalRounds) {
+      if (currentRound > totalRounds) { // t 2-9
         Serial.println("Game over!");
         Serial.print("Score: ");
         Serial.println(score);
@@ -193,6 +214,7 @@ full_state_t updateFSM(full_state_t currState,
         break;
       }
 
+      // t 2-3
       setPWM(0, totalRounds, currentRound);
       ret.moleXy = randomMole();
       ret.moleDurationMs = Constants::DEFAULT_MOLE_DURATION;
@@ -201,10 +223,7 @@ full_state_t updateFSM(full_state_t currState,
       gpioStepperManager.setHeight(ret.moleXy, Constants::MOLE_RISE_HEIGHT);
 
       ret.fsmState = FsmState::s_RAISE_MOLE;
-      // Serial.print("Mole chosen: ");
-      // ret.moleXy.print();
-      // Serial.println();
-      break;
+      break; // s_CHOOSE_MOLE
 
     // ------------------------------------
     // RAISE_MOLE → WAIT
@@ -218,23 +237,20 @@ full_state_t updateFSM(full_state_t currState,
           }
 
 
-      if (moleDistanceToGo == 0) {
+      if (moleDistanceToGo == 0) { // t 3-4
         ret.fsmState = FsmState::s_WAIT;
         ret.moleStartMs = clock;
-        // Serial.print("Mole at:");
-        // ret.moleXy.print();
-        // Serial.println(" ready to hit");
         setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::RAISED);
         setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::RAISED);
-      } else if (anyPress) {
+      } else if (anyPress) { 
         setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::MISSED);
         setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::MISSED);
         gpioStepperManager.setHeight(ret.moleXy, 0);
         ret.fsmState = FsmState::s_CLEAR_MOLE;
-      } else {
+      } else { // t 3-3
         gpioStepperManager.step();
       }
-    } break;
+    } break; // s_RAISE_MOLE
 
     // ------------------------------------
     // WAIT → HIT, MISS, TIME_EXPIRED
@@ -251,25 +267,25 @@ full_state_t updateFSM(full_state_t currState,
               if (x == moleXy.x && y == moleXy.y) correct = true;
             }
 
-        if (anyPress && correct) {
+        if (anyPress && correct) { // t 4-5
           ret.score = score + 1;
           ret.fsmState = FsmState::s_HIT_MOLE;
           Serial.println("HIT");
           setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::HIT);
           setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::HIT);
-        } else if (anyPress && !correct) {
+        } else if (anyPress && !correct) { // t 4-6
           ret.score = score - 1;
           ret.fsmState = FsmState::s_MISS_HIT;
           Serial.println("MISS");
           setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::MISSED);
           setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::MISSED);
-        } else if (clock - moleStartMs > moleDurationMs) {
+        } else if (clock - moleStartMs > moleDurationMs) { // t 4-7
           ret.fsmState = FsmState::s_TIME_EXPIRED;
           Serial.println("EXPIRED");
           setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::EXPIRED);
           setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::EXPIRED);
         }
-        break;
+        break; // s_WAIT
       }
 
     // ------------------------------------
@@ -277,35 +293,35 @@ full_state_t updateFSM(full_state_t currState,
     // ------------------------------------
     case FsmState::s_HIT_MOLE:
     case FsmState::s_MISS_HIT:
-    case FsmState::s_TIME_EXPIRED:
+    case FsmState::s_TIME_EXPIRED: {
+      // t {5, 6, 7}-8
       gpioStepperManager.setHeight(moleXy, 0);
       ret.fsmState = FsmState::s_CLEAR_MOLE;
       break;
+    }
 
     // ------------------------------------
     // CLEAR_MOLE → CHOOSE_MOLE
     // ------------------------------------
-    case FsmState::s_CLEAR_MOLE:
-      // Use the provided motor query again
-      if (moleDistanceToGo == 0) {
+    case FsmState::s_CLEAR_MOLE: {
+      if (moleDistanceToGo == 0) { // t 8-2
         ret.currentRound = currentRound + 1;
         ret.fsmState = FsmState::s_CHOOSE_MOLE;
         setGridColor(ret.moleXy.y, ret.moleXy.x, MoleColors::CLEAR);
         setStripColor(ret.moleXy.y + 1, ret.moleXy.x + 1, MoleColors::CLEAR);
-      } else {
+      } else { // t 8-8
         gpioStepperManager.step();
       }
-      break;
+      break; // s_CLEAR_MOLE
+    }
 
-    case FsmState::s_GAME_OVER:
-      // delay(5000);
-      // Serial.println("Starting new game!");
-      // ret.fsmState = FsmState::s_INIT;
-      break;
+    case FsmState::s_GAME_OVER: {
+      break; // s_GAME_OVER
+    }
 
     default:
       Serial.println("Invalid state");
-      break;
+      break; // default
   }
 
 

@@ -12,7 +12,21 @@ class GpioStepperManager {
 
 public:
   // Chose a static factory + private ctor to put all pin knowledge in gpio_stepper_manager.ino
+  /**
+   * Constructs an instance. Can only be ONE per program.
+   *
+   * Inputs: None
+   * Outputs: None
+   * Side Effects: Initialize hardware via global variables for motors.
+   */
   static GpioStepperManager build();
+
+  /**
+   * Set motor max speed and acceleration
+   * Inputs: None
+   * Outputs: None
+   * Side Effects: Modify stepper motor parameters.
+   */
   void initialize() {
     for (int y = 0; y < Constants::HEIGHT; ++y) {
       for (int x = 0; x < Constants::WIDTH; ++x) {
@@ -22,6 +36,13 @@ public:
     }
   }
 
+  /**
+   * Give a stepper motor a target position. Does not actually perform movement: see step()
+   *
+   * Inputs: See function signature.
+   * Outputs: None
+   * Side Effects: Sets stepper motor target position.
+   */
   void setHeight(xy_t pos, long height) {
     if (pos.y < 0 || pos.y >= Constants::HEIGHT || pos.x < 0 || pos.x >= Constants::WIDTH) {
       Serial.println("Passed bad pos to setHeight");
@@ -31,6 +52,13 @@ public:
     steppers_[pos.y][pos.x]->moveTo(height);
   }
 
+  /**
+   * Compute distance left to move for a stepper's current target
+   *
+   * Inputs: See function signature.
+   * Outputs: Distance, or 0 in invalid conditions
+   * Side Effects: None
+   */
   long distanceToGo(xy_t pos) {
     if (pos.y < 0 || pos.y >= Constants::HEIGHT || pos.x < 0 || pos.x >= Constants::WIDTH) {
       // Serial.println("Passed bad pos to distanceTogo");
@@ -45,6 +73,14 @@ public:
     return steppers_[pos.y][pos.x]->distanceToGo();
   }
 
+  /**
+   * Take a step for all motors towards their target positions. Following
+   * AccelStepper, this should be called as often as possible.
+   *
+   * Inputs: None.
+   * Outputs: None.
+   * Side Effects: Moves motor steppers towards each target.
+   */
   void step() {
     for (int y = 0; y < Constants::HEIGHT; ++y) {
       for (int x = 0; x < Constants::WIDTH; ++x) {
@@ -53,6 +89,13 @@ public:
     }
   }
   
+  /**
+   * Print a welcome message.
+   *
+   * Inputs: None.
+   * Outputs: None.
+   * Side Effects: Print to Serial.
+   */
   void printCalibrationWelcome() {
     Serial.println(F("--- STEPPER CALIBRATION TOOL ---"));
     Serial.println(F("Controls:"));
@@ -145,6 +188,8 @@ private:
   using StepperGrid = AccelStepper*[Constants::HEIGHT][Constants::WIDTH];
   StepperGrid steppers_;
 
+  // Private ctor let's use use global objects to construct this instance
+  // via factory method.
   GpioStepperManager(StepperGrid steppers) {
     for (int y = 0; y < Constants::HEIGHT; ++y) {
       for (int x = 0; x < Constants::WIDTH; ++x) {
